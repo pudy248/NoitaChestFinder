@@ -312,9 +312,8 @@ public static class Wang
 
 	static int ListIndexOfSubstring(List<string> list, string sub)
 	{
-		return list.IndexOf(sub);
-		//for (int i = 0; i < list.Count; i++) if (list[i].Contains(sub)) return i;
-		//return -1;
+		for (int i = 0; i < list.Count; i++) if (list[i].Contains(sub)) return i;
+		return -1;
 	}
 
 	static int CheckString(List<string> positiveList, List<string> negativeList, string s)
