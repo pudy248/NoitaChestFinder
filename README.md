@@ -11,12 +11,15 @@ This program won't do very much if you just run the EXE. All options are availab
 
 ## FAQ
 Q: I got an error complaining about CUDA memory allocation!
+
 A: You don't have enough VRAM for the requested query. The easiest way to fix this is by decreasing batch size with -z. Other options that increase VRAM usage are max items per chest and chests per biome, try and keep these as low as you can without getting overflow warnings. More parallel worlds also use more VRAM.
 
 Q: The program said there was a chest where there wasn't one!
+
 A: Read the disclaimer at the top of this readme. The program is occasionally wrong, but it's right often enough to be useful. I will try and solve the accuracy issue as soon as I find out what's causing it.
 
 Q: There aren't any results for my search!
+
 A: Make sure there aren't any typos in your search list! This is the most common cause of empty searches. Also, make sure you aren't searching for something too rare! Having multiple items in a chest is rare in the first place, and searching for 3 or more items in a normal chest will likely give you no results, as these chests are less than 1 in 100 million! Also, double check that you aren't searching for greed-only items without -g or non-greed items with -g.
 
 ## Search string syntax
