@@ -21,14 +21,14 @@ A: Make sure there aren't any typos in your search list! This is the most common
 
 ## Search string syntax
 The filter string functionality is relatively versatile. Here are all of its features, in order of complexity.
-Search for chests containing at least a single specified item by entering its name. All searches except those with '-' can include extra items besides the searched ones. Ex. "kiuaskivi"
-Search for multiple items (AND) in a single chest by entering their names separated by spaces. Ex. "kiuaskivi gold_nuggets"
-Search for multiple possible items (OR) in a single chest by entering their names separated by '|'. Ex. "vuoksikivi|kakkakikkare"
-Search for chests containing at minimum a specific number of items with the wildcard '*' Ex. "* * *" will return all chests containing at least three items. "chaos_die *" will return all chests containing a chaos die and at least one other item.
-Search for potions by type, like "potion_normal", "potion_secret", and "potion_random_material" by entering their names like a normal item. This only functions when -e is not being used.
-Specific potion contents can be searched by enabling potion contents search with the -e flag and searching "potion_" followed by the material's name in the game code. Ex. "potion_urine" for urine or "potion_magic_liquid_hp_regeneration_unstable" for lively concoction (what a mouthful!).
-Blacklist items from returned chests by prefixing their names with '-'. Ex. "* * -gold_nuggets" will return all chests containing at least 2 items and no gold nuggets.
-Search for exact matches by including '-' on its own in a query. Ex. "wand_T4NS -" will return chests containing a tier 4 non-shuffle wand and nothing else.
+- Search for chests containing at least a single specified item by entering its name. All searches except those with '-' can include extra items besides the searched ones. Ex. "kiuaskivi"
+- Search for multiple items (AND) in a single chest by entering their names separated by spaces. Ex. "kiuaskivi gold_nuggets"
+- Search for multiple possible items (OR) in a single chest by entering their names separated by '|'. Ex. "vuoksikivi|kakkakikkare"
+- Search for chests containing at minimum a specific number of items with the wildcard '*' Ex. "* * *" will return all chests containing at least three items. "chaos_die *" will return all chests containing a chaos die and at least one other item.
+- Search for potions by type, like "potion_normal", "potion_secret", and "potion_random_material" by entering their names like a normal item. This only functions when -e is not being used.
+- Specific potion contents can be searched by enabling potion contents search with the -e flag and searching "potion_" followed by the material's name in the game code. Ex. "potion_urine" for urine or "potion_magic_liquid_hp_regeneration_unstable" for lively concoction (what a mouthful!).
+- Blacklist items from returned chests by prefixing their names with '-'. Ex. "* * -gold_nuggets" will return all chests containing at least 2 items and no gold nuggets.
+- Search for exact matches by including '-' on its own in a query. Ex. "wand_T4NS -" will return chests containing a tier 4 non-shuffle wand and nothing else.
 
 ## Other biomes
 Currently only the mines are fully supported. Every main path biome should work with similar accuracy, but side biomes are by no means guaranteed to function at as high of an accuracy or even at all. All biomes use their code names.
