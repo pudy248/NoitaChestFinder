@@ -6,14 +6,14 @@ public static class STATICDATA
 	public static Dictionary<string, string> nameToColor = new()
 	{
 		{ "coalmine", "d57917" },
-		//{ "coalmine_alt", "d56517" },
+		{ "coalmine_alt", "d56517" },
 		{ "excavationsite", "124445" },
-		//{ "fungicave", "e861f0" },
+		{ "fungicave", "e861f0" },
 		{ "snowcave", "1775d5" },
 		{ "snowcastle", "0046ff" },
 		{ "rainforest", "808000" },
 		{ "rainforest_open", "a08400" },
-		//{ "rainforest_dark", "375c00" },
+		{ "rainforest_dark", "375c00" },
 		{ "vault", "008000" },
 		{ "crypt", "786c42" },
 		{ "wandcave", "006c42" },
