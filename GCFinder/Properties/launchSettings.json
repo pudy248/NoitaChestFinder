@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GCFinder": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
