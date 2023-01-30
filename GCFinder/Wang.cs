@@ -18,173 +18,6 @@ public static class Wang
 
 	static string threadlock = "bottom text";
 
-	public static ulong createRGB(byte r, byte g, byte b)
-	{
-		return (ulong)(((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff));
-	}
-
-	public static ulong getPos(uint w, byte f, uint x, uint y)
-	{
-		return w * y * f + f * x;
-	}
-
-	public static ulong getPixelColor(byte[] map, uint w, uint x, uint y)
-	{
-		ulong pos = getPos(w, 3, x, y);
-		byte r = map[pos];
-		byte g = map[pos + 1];
-		byte b = map[pos + 2];
-		return createRGB(r, g, b);
-	}
-
-	public static void setPixelColor(byte[] map, uint w, uint x, uint y, ulong color)
-	{
-		ulong pos = getPos(w, 3, x, y);
-		byte r = (byte)((color >> 16) & 0xff);
-		byte g = (byte)((color >> 8) & 0xff);
-		byte b = (byte)((color) & 0xff);
-		map[pos] = r;
-		map[pos + 1] = g;
-		map[pos + 2] = b;
-	}
-
-	static void floodFill(byte[] map, uint width, uint height, uint initialX, uint initialY, ulong fromColor, ulong toColor)
-	{
-		Stack<(uint, uint)> s = new();
-		bool[] visited = new bool[width * height + 1];
-
-		if (initialX < 0 || initialX >= width || initialY < 0 || initialY >= height)
-		{
-			return;
-		}
-
-		s.Push((initialX, initialY));
-		visited[getPos(width, 1, initialX, initialY)] = true;
-
-		int filled = 0;
-
-		while (s.Count() > 0)
-		{
-			(uint, uint) pos = s.Pop();
-			uint x = pos.Item1;
-			uint y = pos.Item2;
-
-			setPixelColor(map, width, x, y, toColor);
-			filled++;
-			{
-				uint nx = x - 1;
-				uint ny = y;
-				if (nx < 0 || nx >= width || ny < 0 || ny >= height)
-				{
-					return;
-				}
-
-				ulong p = getPos(width, 1, nx, ny);
-				if (visited[p] == true)
-				{
-					return;
-				}
-
-				ulong nc = getPixelColor(map, width, nx, ny);
-				if (nc != fromColor || nc == toColor)
-				{
-					return;
-				}
-
-				visited[p] = true;
-				s.Push((nx, ny));
-			}
-			{
-				uint nx = x + 1;
-				uint ny = y;
-				if (nx < 0 || nx >= width || ny < 0 || ny >= height)
-				{
-					return;
-				}
-
-				ulong p = getPos(width, 1, nx, ny);
-				if (visited[p] == true)
-				{
-					return;
-				}
-
-				ulong nc = getPixelColor(map, width, nx, ny);
-				if (nc != fromColor || nc == toColor)
-				{
-					return;
-				}
-
-				visited[p] = true;
-				s.Push((nx, ny));
-			}
-			{
-				uint nx = x;
-				uint ny = y - 1;
-				if (nx < 0 || nx >= width || ny < 0 || ny >= height)
-				{
-					return;
-				}
-
-				ulong p = getPos(width, 1, nx, ny);
-				if (visited[p] == true)
-				{
-					return;
-				}
-
-				ulong nc = getPixelColor(map, width, nx, ny);
-				if (nc != fromColor || nc == toColor)
-				{
-					return;
-				}
-
-				visited[p] = true;
-				s.Push((nx, ny));
-			}
-			{
-				uint nx = x;
-				uint ny = y + 1;
-				if (nx < 0 || nx >= width || ny < 0 || ny >= height)
-				{
-					return;
-				}
-
-				ulong p = getPos(width, 1, nx, ny);
-				if (visited[p] == true)
-				{
-					return;
-				}
-
-				ulong nc = getPixelColor(map, width, nx, ny);
-				if (nc != fromColor || nc == toColor)
-				{
-					return;
-				}
-
-				visited[p] = true;
-				s.Push((nx, ny));
-			}
-		}
-	}
-
-	public static NoitaRandom GetRNG(int map_w, uint world_seed)
-	{
-		NoitaRandom rng = new NoitaRandom(world_seed);
-		rng.SetRandomFromWorldSeed();
-		rng.Next();
-		int length = (int)((ulong)((long)map_w * -0x2e8ba2e9) >> 0x20);
-		int iters = (int)(((length >> 1) - (length >> 0x1f)) * 0xb + (world_seed / 0xc) * -0xc + world_seed) + map_w;
-		if (0 < iters)
-		{
-			do
-			{
-				rng.Next();
-				iters -= 1;
-			} while (iters != 0);
-		}
-		return rng;
-	}
-
-
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public static extern IntPtr generate_block(
 		byte[] tiles_data,
@@ -203,7 +36,8 @@ public static class Wang
 		byte loggingLevel,
 		uint maxChestContents,
 		uint maxChestsPerWorld,
-		byte greedCurse);
+		byte greedCurse,
+		byte checkItems);
 
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public static extern void free_array(IntPtr block);
@@ -300,6 +134,14 @@ public static class Wang
 				return "wand_T6";
 			case 43:
 				return "wand_T6NS";
+			case 44:
+				return "egg_purple";
+			case 45:
+				return "egg_slime";
+			case 46:
+				return "egg_monster";
+			case 47:
+				return "broken_wand";
 
 			case 254:
 				return "sampo";
@@ -321,8 +163,16 @@ public static class Wang
 		if (negativeList.Contains("-" + s)) return -1;
 
 		int idx = ListIndexOfSubstring(positiveList, s);
-		if (idx != -1) positiveList.RemoveAt(idx);
-		else if (positiveList.Contains("*")) positiveList.Remove("*");
+		if (idx != -1)
+		{
+			positiveList.RemoveAt(idx);
+			return 1;
+		}
+		else if (positiveList.Contains("*"))
+		{
+			positiveList.Remove("*");
+			return 1;
+		}
 		else if (negativeList.Contains("-")) return -1;
 		return 0;
 	}
@@ -352,26 +202,15 @@ public static class Wang
 		}
 	}
 
-	public static unsafe List<Chest> GenerateMap(Image wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, int worldX, int worldY, ConfigState o)
+	public static unsafe List<Chest>[] ReadChestArray(byte* ptr, ConfigState o)
 	{
-		byte[] wangData = Helpers.ImageToByteArray(wang);
-		GCHandle pinnedTileData = GCHandle.Alloc(wangData, GCHandleType.Pinned);
-
-		DateTime lStartTime = DateTime.Now;
-		IntPtr pointer = generate_block(wangData, tiles_w, tiles_h, map_w, map_h, isCoalMine, worldX, worldY, o.currentSeed + o.ngPlus, Math.Max(o.batch, MAGIC_NUMBER), o.maxTries, o.pwCount, (byte)o.ngPlus, (byte)o.loggingLevel, o.maxChestContents, o.maxChestsPerBiome, (byte)(o.greedCurse ? 1 : 0));
-		DateTime lEndTime = DateTime.Now;
-		TimeSpan lFullExec = lEndTime - lStartTime;
-		if (o.loggingLevel >= 2) Console.WriteLine($"DLL time: {lFullExec.TotalSeconds} sec");
-
-		pinnedTileData.Free();
-		byte* bytePtr = (byte*)pointer.ToPointer();
-		List<Chest> ret = new();
-
+		List<Chest>[] retArr = new List<Chest>[o.batch];
 		Parallel.For(0, o.batch, i =>
 		{
-			byte* chestBlock = bytePtr + i * ((9 + o.maxChestContents) * (2 * o.pwCount + 1) * o.maxChestsPerBiome + sizeof(uint)) + sizeof(uint);
+			List<Chest> ret = new List<Chest>();
+			byte* chestBlock = ptr + i * ((9 + o.maxChestContents) * (2 * o.pwCount + 1) * o.maxChestsPerBiome + sizeof(uint)) + sizeof(uint);
 			int count = *(((int*)chestBlock) - 1);
-			if (o.loggingLevel >= 4) Console.WriteLine($"Chest count: {count}");
+
 			for (int j = 0; j < count; j++)
 			{
 				byte* c = chestBlock + j * (9 + o.maxChestContents);
@@ -385,7 +224,7 @@ public static class Wang
 				retChest.x = x;
 				retChest.y = y;
 				retChest.seed = (uint)(o.currentSeed + i);
-				retChest.contents = new(); 
+				retChest.contents = new();
 
 				//Decode step
 				for (int k = 0; k < contentsCount; k++)
@@ -395,51 +234,96 @@ public static class Wang
 					ExpandAndAdd(retChest, s, o.potionContents);
 				}
 
+				ret.Add(retChest);
+			}
+			lock (retArr)
+			{
+				retArr[i] = ret;
+			}
+		});
+		return retArr;
+	}
+
+	public static List<Chest> FilterChestList(List<Chest>[] lArr, ConfigState o)
+	{
+		List<Chest> ret = new List<Chest>();
+		Parallel.For(0, o.batch, i =>
+		{
+			List<Chest> seedChests = lArr[i];
+
+			List<string> aggregateSearch = new(o.lootPositive);
+			List<Chest> aggregateChests = new();
+			foreach (Chest c in seedChests)
+			{
+				if (o.loggingLevel >= 6) Console.WriteLine($"Chest {c.x} {c.y}: {c.contents.Count}");
+				List<string> searchList = new(o.lootPositive);
+
 				//Validate step
 				bool failed = false;
-				for (int k = 0; k < retChest.contents.Count; k++)
+				bool aggregatePassed = false;
+				for (int k = 0; k < c.contents.Count; k++)
 				{
-					string s = retChest.contents[k];
+					string s = c.contents[k];
 					if (o.loggingLevel >= 6) Console.WriteLine($"  {s}");
 
 					int checkResult = CheckString(searchList, o.lootNegative, s);
+					int aggregateResult = CheckString(aggregateSearch, o.lootNegative, s);
 
 					if (o.loggingLevel >= 6) Console.WriteLine($"     Result: {checkResult}, {searchList.Count}");
-					if (checkResult == -1)
+					if (!o.aggregate && checkResult == -1)
 					{
 						failed = true;
 						break;
 					}
-				}
-				if (searchList.Count == 0 && !failed)
-				{
-					lock (threadlock)
+					if(o.aggregate && aggregateResult == 1)
 					{
-						ret.Add(retChest);
+						aggregatePassed = true;
 					}
+				}
+				if (!o.aggregate && searchList.Count == 0 && !failed)
+				{
+					lock (ret)
+					{
+						ret.Add(c);
+					}
+				}
+				if(o.aggregate && aggregatePassed)
+				{
+					aggregateChests.Add(c);
+				}
+			}
+			if(o.aggregate && aggregateSearch.Count == 0)
+			{
+				lock (ret)
+				{
+					ret.AddRange(aggregateChests);
 				}
 			}
 		});
-		free_array(pointer);
-
 		return ret;
 	}
 
-	public static Image GeneratePathMap(Image map, int map_w, int map_h, int worldX, int worldY)
+
+	public static unsafe List<Chest>[] GenerateMap(Image wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, int worldX, int worldY, ConfigState o)
 	{
-		byte[] imgData = Helpers.ImageToByteArray(map);
-		byte[] result = new byte[3 * map_w * map_h];
+		byte[] wangData = Helpers.ImageToByteArray(wang);
+		GCHandle pinnedTileData = GCHandle.Alloc(wangData, GCHandleType.Pinned);
 
-		bool mainPath = isMainPath(map_w, worldX);
-		long malloc_amount = 3 * map_w * map_h;
-		for (int i = 0; i < malloc_amount; i++)
-		{
-			result[i] = imgData[i];
-		}
-		uint path_start_x = 0x8e;
-		floodFill(result, (uint)map_w, (uint)map_h, path_start_x, 1, COLOR_BLACK, COLOR_PURPLE);
+		DateTime lStartTime = DateTime.Now;
+		IntPtr pointer = generate_block(wangData, tiles_w, tiles_h, map_w, map_h, isCoalMine, worldX, worldY, o.currentSeed + o.ngPlus, 
+			Math.Max(o.batch, MAGIC_NUMBER), o.maxTries, o.pwCount, (byte)o.ngPlus, (byte)o.loggingLevel, o.maxChestContents, o.maxChestsPerBiome, 
+			(byte)(o.greedCurse ? 1 : 0), (byte)(o.checkItems ? 1 : 0));
 
-		return Helpers.ByteArrayToImage(result, map_w, map_h);
+		DateTime lEndTime = DateTime.Now;
+		TimeSpan lFullExec = lEndTime - lStartTime;
+		if (o.loggingLevel >= 2) Console.WriteLine($"DLL time: {lFullExec.TotalSeconds} sec");
+
+		pinnedTileData.Free();
+		byte* bytePtr = (byte*)pointer.ToPointer();
+
+		List<Chest>[] ret = ReadChestArray(bytePtr, o);
+		free_array(pointer);
+		return ret;
 	}
 
 	const int BIOME_PATH_FIND_WORLD_POS_MIN_X = 159;

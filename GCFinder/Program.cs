@@ -30,8 +30,14 @@ public class ConfigState
 	[Option('g', "greed-curse", Required = false, HelpText = "Is the greed curse active?", Default = false)]
 	public bool greedCurse { get; set; }
 
+	[Option('k', "check-items", Required = false, HelpText = "Check item pedestals as well as chests.", Default = false)]
+	public bool checkItems { get; set; }
+
 	[Option('e', "search-potions", Required = false, HelpText = "Should potion contents be computed?", Default = false)]
 	public bool potionContents { get; set; }
+
+	[Option('a', "aggregate-items", Required = false, HelpText = "Expands multi-item search scope to the entire world instead of single chests.", Default = false)]
+	public bool aggregate { get; set; }
 
 	[Option('o', "output-path", Required = false, HelpText = "File to write outputs to. Leave blank to only log to the console.", Default = "out.txt")]
 	public string outputPath { get; set; }
@@ -67,7 +73,7 @@ public class Program
 			foreach(string s in opt.lootSeparated)
 			{
 				if(s.StartsWith("-")) opt.lootNegative.Add(s);
-				else opt.lootPositive.Add(s);
+				else if(s != "") opt.lootPositive.Add(s);
 			}
 			if (opt.loggingLevel >= 3)
 			{
@@ -95,32 +101,20 @@ public class Program
 
 				if (opt.biome == "full")
 				{
-					foreach(string biome in STATICDATA.nameToColor.Keys)
-					{
-						DateTime bStartTime = DateTime.Now;
-						MapGenerator gen = new MapGenerator();
-						gen.ProvideBlock(biome, opt);
-						DateTime bEndTime = DateTime.Now;
-						TimeSpan bFullExec = bEndTime - bStartTime;
-						if (opt.loggingLevel >= 1) Console.WriteLine($"Batch {i} ({biome}): {bFullExec.TotalSeconds} sec");
-					}
+					List<string> biomes = STATICDATA.nameToColor.Keys.ToList();
+					MapGenerator gen = new MapGenerator();
+					gen.ProvideMap(biomes, opt);
 				}
 				else if (opt.biome == "mainpath")
 				{
-					foreach (string biome in new string[] {"coalmine", "excavationsite", "snowcave", "snowcastle", "rainforest", "rainforest_open", "vault", "crypt"})
-					{
-						DateTime bStartTime = DateTime.Now;
-						MapGenerator gen = new MapGenerator();
-						gen.ProvideBlock(biome, opt);
-						DateTime bEndTime = DateTime.Now;
-						TimeSpan bFullExec = bEndTime - bStartTime;
-						if (opt.loggingLevel >= 1) Console.WriteLine($"Batch {i} ({biome}): {bFullExec.TotalSeconds} sec");
-					}
+					List<string> biomes = new List<String>() { "coalmine", "excavationsite", "snowcave", "snowcastle", "rainforest", "rainforest_open", "vault", "crypt" };
+					MapGenerator gen = new MapGenerator();
+					gen.ProvideMap(biomes, opt);
 				}
 				else
 				{
 					MapGenerator gen = new MapGenerator();
-					gen.ProvideBlock(opt.biome, opt);
+					gen.ProvideMap(opt.biome.Split(' ', StringSplitOptions.TrimEntries).ToList(), opt);
 
 				}
 
@@ -135,99 +129,6 @@ public class Program
 		DateTime lEndTime = DateTime.Now;
 		TimeSpan lFullExec = lEndTime - lStartTime;
 		Console.WriteLine($"Full search: {lFullExec.TotalSeconds} sec");
-
-
-		/*
-		Parser.Default.ParseArguments<Options>(args).WithParsed(o =>
-		{
-			GCFinder.MapDatatypes.STATICDATA.READ_ALL();
-			MapGenerator.DO_IMPLEMENTATION_LOGS = false;
-
-			if (o.mode == 0)
-			{
-				DateTime lStartTime = DateTime.Now;
-				int i = 0;
-				while (i < o.loop / o.batch)
-				{
-					DateTime startTime = DateTime.Now;
-					try
-					{
-						uint currentSeedNum = o.seed;
-						int currentChestNum = 0;
-						if (o.fromLastSeed)
-						{
-							if (!File.Exists("seed.txt")) File.WriteAllText("seed.txt", "0,0");
-							string currentFile = File.ReadAllText("seed.txt");
-							currentSeedNum = uint.Parse(currentFile.Split(",")[0]);
-							currentChestNum = int.Parse(currentFile.Split(",")[1]);
-						}
-
-						MapGenerator gen = new MapGenerator();
-						if (o.fullMap) gen.CheckFullMap((uint)j, 0, o);
-						else gen.Provide(36, 14, (uint)j, 0, 1, o);
-						currentChestNum += gen.chestCounter;
-
-						currentSeedNum += (uint)o.batch;
-						File.WriteAllText("seed.txt", $"{currentSeedNum},{currentChestNum}");
-						i++;
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine(ex.ToString());
-					}
-
-					DateTime endTime = DateTime.Now;
-					TimeSpan fullExec = endTime - startTime;
-					Console.WriteLine($"Batch {i}: {fullExec.TotalSeconds} sec");
-				}
-				DateTime lEndTime = DateTime.Now;
-				TimeSpan lFullExec = lEndTime - lStartTime;
-				Console.WriteLine($"Full search: {lFullExec.TotalSeconds} sec");
-			}
-			else if (o.mode == 1)
-			{
-				DateTime startTime = DateTime.Now;
-
-				uint currentSeedNum = o.seed;
-				int currentChestNum = 0;
-				if (o.fromLastSeed)
-				{
-					if (!File.Exists("seed.txt")) File.WriteAllText("seed.txt", "0,0");
-					string currentFile = File.ReadAllText("seed.txt");
-					currentSeedNum = uint.Parse(currentFile.Split(",")[0]);
-					currentChestNum = int.Parse(currentFile.Split(",")[1]);
-				}
-
-				for(uint i = currentSeedNum; i < currentSeedNum + o.loop; i++)
-				{
-					MapGenerator gen = new MapGenerator();
-					if (o.fullMap) gen.CheckFullMap(i, 0, o);
-					else gen.Provide(36, 14, i, 0, 1, o);
-					currentChestNum += gen.chestCounter;
-				}
-
-				currentSeedNum += (uint)o.batch;
-				File.WriteAllText("seed.txt", $"{currentSeedNum},{currentChestNum}");
-
-				DateTime endTime = DateTime.Now;
-				TimeSpan fullExec = endTime - startTime;
-				Console.WriteLine($"Completed in {fullExec.TotalSeconds} sec");
-			}
-			else if (o.mode == 2)
-			{
-				DateTime startTime = DateTime.Now;
-
-				uint currentSeedNum = o.seed;
-
-				MapGenerator gen = new MapGenerator();
-				if (o.fullMap) gen.CheckFullMap(currentSeedNum, 0, o);
-				else gen.Provide(36, 14, currentSeedNum, 0, 1, o);
-
-				DateTime endTime = DateTime.Now;
-				TimeSpan fullExec = endTime - startTime;
-				Console.WriteLine($"Completed in {fullExec.TotalSeconds} sec");
-			}
-		});*/
 	}
 }
 

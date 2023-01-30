@@ -128,14 +128,32 @@ public class Chest
 public class MapGenerator
 {
 	public ConfigState options;
-
-	public void ProvideBlock(string biome, ConfigState o)
+	
+	public void ProvideMap(List<string> biomes, ConfigState o)
 	{
 		options = o;
 
+		List<Chest>[] allChests = new List<Chest>[o.batch];
+		foreach (string biome in biomes)
+		{
+			List<Chest>[] biomeChests = ProvideBlock(biome);
+			Parallel.For(0, options.batch, i =>
+			{
+				if (allChests[i] == null) allChests[i] = new();
+				allChests[i].AddRange(biomeChests[i]);
+			});
+		}
+
+		List<Chest> filteredChests = Wang.FilterChestList(allChests, o);
+		SortAndWriteResults(filteredChests);
+	}
+
+	public List<Chest>[] ProvideBlock(string biome)
+	{
 		string color = STATICDATA.nameToColor[biome];
 		List<MapArea> area = STATICDATA.colorToArea[color];
 		Image wangMap = STATICDATA.colorToWang[color];
+		List<Chest>[] aggregateRet = new List<Chest>[options.batch];
 
 		for (int i = 0; i < area.Count; i++)
 		{
@@ -149,7 +167,7 @@ public class MapGenerator
 			int map_w = Wang.GetWidthFromPix(x1, x1 + w);
 			int map_h = Wang.GetWidthFromPix(y1, y1 + h);
 
-			List<Chest> chests = Wang.GenerateMap(
+			List<Chest>[] chests = Wang.GenerateMap(
 				wangMap,
 				(uint)wangMap.Width,
 				(uint)wangMap.Height,
@@ -160,24 +178,33 @@ public class MapGenerator
 				y1,
 				options
 			);
-
-			chests = chests.OrderBy(c => c.seed).ToList();
-
-			StreamWriter file = null;
-			if (o.outputPath != "") file = new(o.outputPath, true);
-
-			for (int j = 0; j < chests.Count; j++)
+			Parallel.For(0, options.batch, i =>
 			{
-				string output = $"{chests[j].seed} at ({chests[j].x}, {chests[j].y}) contains a ";
-				for (int k = 0; k < chests[j].contents.Count; k++)
-				{
-					output += chests[j].contents[k] + ", ";
-				}
-				output = output.Substring(0, output.Length - 2) + ".";
-				Console.WriteLine(output);
-				if (o.outputPath != "") file.WriteLine(output);
-			}
-			if (o.outputPath != "") file.Close();
+				if (aggregateRet[i] == null) aggregateRet[i] = new();
+				aggregateRet[i].AddRange(chests[i]);
+			});
 		}
+		return aggregateRet;
+	}
+
+	public void SortAndWriteResults(List<Chest> chests)
+	{
+		chests = chests.OrderBy(c => c.seed).ToList();
+
+		StreamWriter file = null;
+		if (options.outputPath != "") file = new(options.outputPath, true);
+
+		for (int j = 0; j < chests.Count; j++)
+		{
+			string output = $"{chests[j].seed} at ({chests[j].x}, {chests[j].y}) contains a ";
+			for (int k = 0; k < chests[j].contents.Count; k++)
+			{
+				output += chests[j].contents[k] + ", ";
+			}
+			output = output.Substring(0, output.Length - 2) + ".";
+			Console.WriteLine(output);
+			if (options.outputPath != "") file.WriteLine(output);
+		}
+		if (options.outputPath != "") file.Close();
 	}
 }
