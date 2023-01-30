@@ -20,14 +20,14 @@ A: Read the disclaimer at the top of this readme. The program is occasionally wr
 
 Q: There aren't any results for my search!
 
-A: Make sure there aren't any typos in your search list! This is the most common cause of empty searches. Also, make sure you aren't searching for something too rare! Having multiple items in a chest is rare in the first place, and searching for 3 or more items in a normal chest will likely give you no results, as these chests are less than 1 in 100 million! Also, double check that you aren't searching for greed-only items without -g or non-greed items with -g.
+A: Make sure there aren't any typos in your search list! This is the most common cause of empty searches. Also, make sure you aren't searching for something too rare! Having multiple items in a chest is rare in the first place, and searching for 3 or more specific items (ex. 3 paha silmas) in a normal chest will likely give you no results, as these chests are often less than 1 in 100 million! Also, double check that you aren't searching for greed-only items without -g or non-greed items with -g.
 
 ## Search string syntax
 The filter string functionality is relatively versatile. Here are all of its features, in order of complexity.
 - Search for chests containing at least a single specified item by entering its name. All searches except those with '-' can include extra items besides the searched ones. Ex. "kiuaskivi"
 - Search for multiple items (AND) in a single chest by entering their names separated by spaces. Ex. "kiuaskivi gold_nuggets"
 - Search for multiple possible items (OR) in a single chest by entering their names separated by '|'. Ex. "vuoksikivi|kakkakikkare"
-- Search for chests containing at minimum a specific number of items with the wildcard '*' Ex. "* * *" will return all chests containing at least three items. "chaos_die *" will return all chests containing a chaos die and at least one other item.
+- Search for chests containing at minimum a specific number of items with the wildcard '\*' Ex. "\* \* \*" will return all chests containing at least three items. "chaos_die \*" will return all chests containing a chaos die and at least one other item.
 - Search for potions by type, like "potion_normal", "potion_secret", and "potion_random_material" by entering their names like a normal item. This only functions when -e is not being used.
 - Specific potion contents can be searched by enabling potion contents search with the -e flag and searching "potion_" followed by the material's name in the game code. Ex. "potion_urine" for urine or "potion_magic_liquid_hp_regeneration_unstable" for lively concoction (what a mouthful!).
 - Blacklist items from returned chests by prefixing their names with '-'. Ex. "* * -gold_nuggets" will return all chests containing at least 2 items and no gold nuggets.
