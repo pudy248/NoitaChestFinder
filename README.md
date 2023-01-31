@@ -1,5 +1,5 @@
 # pudy248's Chest Loot Searcher
-DISCLAIMER: There are a few bugs in the Wang tiler worldgen, which makes this program only correct ~30-40% of the time. If a seed doesn't have a chest at the reported position, try another seed. Sometimes it can take a few attempts.
+DISCLAIMER: There are a few bugs in the Wang tiler worldgen, which makes this program only correct ~60-70% of the time. If a seed doesn't have a chest at the reported position, try another seed. Sometimes it can take a few attempts.
 
 ## Installation
 Simply download and extract the latest release and open a command prompt in the folder. Make sure CUDA and .NET are installed on your system. Then, just type in GCFinder followed by your desired options.
@@ -32,6 +32,8 @@ The filter string functionality is relatively versatile. Here are all of its fea
 - Specific potion contents can be searched by enabling potion contents search with the -e flag and searching "potion_" followed by the material's name in the game code. Ex. "potion_urine" for urine or "potion_magic_liquid_hp_regeneration_unstable" for lively concoction (what a mouthful!).
 - Blacklist items from returned chests by prefixing their names with '-'. Ex. "* * -gold_nuggets" will return all chests containing at least 2 items and no gold nuggets.
 - Search for exact matches by including '-' on its own in a query. Ex. "wand_T4NS -" will return chests containing a tier 4 non-shuffle wand and nothing else.
+- Aggregate searches between all chests in a seed by adding the option -a. This will allow queries like "kiuaskivi kiuaskivi" to return 2 chests in the same seed that each contain just a single kiuaskivi.
+- Search item pedestals as well with -k. Eggs and broken wands can only spawn on pedestals, so use this flag when searching for them.
 
 ## Other biomes
 Currently only the mines are fully supported. Every main path biome should work with similar accuracy, but side biomes are by no means guaranteed to function at as high of an accuracy or even at all. All biomes use their code names.
