@@ -54,6 +54,18 @@ public class ConfigState
 	[Option('t', "max-tries", Required = false, HelpText = "Maximum generation attempts.", Default = 10U)]
 	public uint maxTries { get; set; }
 
+	[Option("min-x", Required = false, HelpText = "Minimum X position.", Default = -1)]
+	public int minX { get; set; }
+
+	[Option("min-y", Required = false, HelpText = "Minimum Y position.", Default = -1)]
+	public int minY { get; set; }
+
+	[Option("max-x", Required = false, HelpText = "Maximum X position.", Default = -1)]
+	public int maxX { get; set; }
+
+	[Option("max-y", Required = false, HelpText = "Maximum Y position.", Default = -1)]
+	public int maxY { get; set; }
+
 	public uint currentSeed;
 	public List<string> lootSeparated;
 

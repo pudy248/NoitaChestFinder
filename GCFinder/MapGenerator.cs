@@ -134,12 +134,12 @@ public class MapGenerator
 		options = o;
 
 		List<Chest>[] allChests = new List<Chest>[o.batch];
+		for (int i = 0; i < options.batch; i++) allChests[i] = new();
 		foreach (string biome in biomes)
 		{
 			List<Chest>[] biomeChests = ProvideBlock(biome);
 			Parallel.For(0, options.batch, i =>
 			{
-				if (allChests[i] == null) allChests[i] = new();
 				allChests[i].AddRange(biomeChests[i]);
 			});
 		}
@@ -154,6 +154,7 @@ public class MapGenerator
 		List<MapArea> area = STATICDATA.colorToArea[color];
 		Image wangMap = STATICDATA.colorToWang[color];
 		List<Chest>[] aggregateRet = new List<Chest>[options.batch];
+		for (int i = 0; i < options.batch; i++) aggregateRet[i] = new();
 
 		for (int i = 0; i < area.Count; i++)
 		{
@@ -180,7 +181,6 @@ public class MapGenerator
 			);
 			Parallel.For(0, options.batch, i =>
 			{
-				if (aggregateRet[i] == null) aggregateRet[i] = new();
 				aggregateRet[i].AddRange(chests[i]);
 			});
 		}
@@ -189,6 +189,16 @@ public class MapGenerator
 
 	public void SortAndWriteResults(List<Chest> chests)
 	{
+		if (options.minX != -1)
+			chests = chests.Where(c => c.x >= options.minX).ToList();
+		if(options.maxX != -1)
+			chests = chests.Where(c => c.x < options.maxX).ToList();
+
+		if (options.minY != -1)
+			chests = chests.Where(c => c.y >= options.minY).ToList();
+		if(options.maxY != -1)
+			chests = chests.Where(c => c.y < options.maxY).ToList();
+
 		chests = chests.OrderBy(c => c.seed).ToList();
 
 		StreamWriter file = null;

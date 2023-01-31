@@ -6,15 +6,7 @@ namespace GCFinder;
 public static class Wang
 {
 	//program segfaults on batch sizes smaller than this. Don't know why, don't care, we'll just cap the batch size sent to the kernel.
-	const uint MAGIC_NUMBER = 726;
-
-	const ulong COLOR_PURPLE = 0x7f007f;
-	const ulong COLOR_BLACK = 0x000000;
-	const ulong COLOR_WHITE = 0xffffff;
-	const ulong COLOR_YELLOW = 0xffff00;
-	const ulong COLOR_COFFEE = 0xc0ffee;
-	const ulong COLOR_01CFEE = 0x01cfee;
-	const bool DEBUG = false;
+	const uint MAGIC_NUMBER = 724;
 
 	static string threadlock = "bottom text";
 
@@ -303,7 +295,6 @@ public static class Wang
 		return ret;
 	}
 
-
 	public static unsafe List<Chest>[] GenerateMap(Image wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, int worldX, int worldY, ConfigState o)
 	{
 		byte[] wangData = Helpers.ImageToByteArray(wang);
@@ -324,17 +315,6 @@ public static class Wang
 		List<Chest>[] ret = ReadChestArray(bytePtr, o);
 		free_array(pointer);
 		return ret;
-	}
-
-	const int BIOME_PATH_FIND_WORLD_POS_MIN_X = 159;
-	const int BIOME_PATH_FIND_WORLD_POS_MAX_X = 223;
-	const int WORLD_OFFSET_Y = 14;
-	const int WORLD_OFFSET_X = 35;
-	static bool isMainPath(int width, int worldX)
-	{
-		int fill_x_from = (int)(BIOME_PATH_FIND_WORLD_POS_MIN_X - (worldX - WORLD_OFFSET_X) * 512.0) / 10;
-		int fill_x_to = fill_x_from + (BIOME_PATH_FIND_WORLD_POS_MAX_X - BIOME_PATH_FIND_WORLD_POS_MIN_X) / 10;
-		return fill_x_to > 0 && fill_x_from > 0 && width > fill_x_from && fill_x_to < width + fill_x_from;
 	}
 
 	public static int GetWidthFromPix(int a, int b)
