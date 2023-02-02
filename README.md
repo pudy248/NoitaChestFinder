@@ -2,12 +2,12 @@
 DISCLAIMER: There are a few bugs in the Wang tiler worldgen, which makes this program only correct ~60-70% of the time. If a seed doesn't have a chest at the reported position, try another seed. Sometimes it can take a few attempts.
 
 ## Installation
-Simply download and extract the latest release and open a command prompt in the folder. Make sure CUDA and .NET are installed on your system. Then, just type in GCFinder followed by your desired options.
+Simply download and extract the latest release and open a command prompt in the folder. Make sure CUDA and .NET are installed on your system. Then, in a command prompt, type in GCFinder followed by your desired options.
 
 For advanced users, you can also compile this program from scratch if you want to tinker with things. The Visual Studio solution should have everything configured properly.
 
 ## Usage
-This program won't do very much if you just run the EXE. All options are available in the form of command-line arguments. Run GCFinder --help for a short summary of each one. The option you'll use most is -l, as that is the loot filter for chests. A list of valid items can be found in matchlist.txt, and advanced syntax is documented in the option documentation below.
+This program won't do very much if you just run the EXE. All options are available in the form of command-line arguments. Run GCFinder --help in CMD for a short summary of each one. The option you'll use most is -l, as that is the loot filter for chests. A list of valid items can be found in matchlist.txt, and advanced syntax is documented in the option documentation below.
 
 ## FAQ
 Q: I got an error complaining about CUDA memory allocation!
