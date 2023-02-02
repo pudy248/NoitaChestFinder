@@ -40,7 +40,7 @@ The filter string functionality is relatively versatile. Here are all of its fea
 
 - Search for multiple possible items (OR) in a single chest by entering their names separated by '|'. Ex. `-l "vuoksikivi|kakkakikkare"` will return all chests with either a vuoksikivi or a kakkakikkare.
 
-- Search for chests containing at minimum a specific number of items with the wildcard '\*' Ex. `-l "\* \* \*"` will return all chests containing at least three items. `-l "chaos_die \*"` will return all chests containing a chaos die and at least one other item.
+- Search for chests containing at minimum a specific number of items with the wildcard '\*' Ex. `-l "* * *"` will return all chests containing at least three items. `-l "chaos_die *"` will return all chests containing a chaos die and at least one other item.
 
 - Search for potions by type, like `potion_normal`, `potion_secret`, and `potion_random_material` by entering their names like a normal item. Ex. `-l "potion_random_material"` will return all chests containing random material potions, regardless of what the actual contents of the potion are.
 
