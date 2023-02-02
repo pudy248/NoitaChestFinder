@@ -53,7 +53,7 @@ The filter string functionality is relatively versatile. Here are all of its fea
 - Search for exact matches by including '-' on its own in a query. Ex. `-l "wand_T4NS -"` will return chests containing a tier 4 non-shuffle wand and no additional items.
 
 ## Other biomes
-Currently only the mines are fully supported. Every main path biome should work with similar accuracy, but side biomes are by no means guaranteed to function at as high of an accuracy or even at all. All biomes use their code names.
+Currently only the mines are fully supported. Every main path biome should work with similar accuracy, but side biomes are by no means guaranteed to function at as high of an accuracy or even at all. All biomes use their LUA names.
 
 ## Other options
 - Batch size controls how many seeds are computed at once. You should adjust this number to use close to as much VRAM as you have available, since larger batches run significantly faster per-seed.
