@@ -10,9 +10,13 @@ For advanced users, you can also compile this program from scratch if you want t
 This program won't do very much if you just run the EXE. All options are available in the form of command-line arguments. Run GCFinder --help in CMD for a short summary of each one. The option you'll use most is -l, as that is the loot filter for chests. A list of valid items can be found in matchlist.txt, and advanced syntax is documented in the option documentation below.
 
 ## FAQ
-Q: I got an error complaining about CUDA memory allocation!
+Q: I got an error related to CUDA memory allocation!
 
 A: You don't have enough VRAM for the requested query. The easiest way to fix this is by decreasing batch size with -z. Other options that increase VRAM usage are max items per chest and chests per biome, try and keep these as low as you can without getting overflow warnings. More parallel worlds also use more VRAM.
+
+Q: I got warnings related to chest density!
+
+A: You haven't allocated enough space for chests in each biome, so extra chests are being ignored. Increase --max-chests-per-biome until the warnings disappear.
 
 Q: The program said there was a chest where there wasn't one!
 
@@ -44,7 +48,7 @@ Currently only the mines are fully supported. Every main path biome should work 
 
 ## Other options
 - Batch size controls how many seeds are computed at once. You should adjust this number to use close to as much VRAM as you have available, since larger batches run significantly faster per-seed.
-- Max items per chest controls how many items can be recorded in a single chest. Chests that exceed this number will still behave fine, but items over the limit will be removed from the contents. If you're searching for just one item, setting this to something like 5 may improve performance slightly, since chests with many items are likely not of use for such queries.
+- Max items per chest controls how many items can be recorded in a single chest. Chests that exceed this number will still behave fine, but items over the limit will be removed from the contents. If you're searching for just one item, setting this to 1 may improve performance slightly, since chests with many items are not of use for such searches.
 - Max chests per biome controls the maximum number of chests that can be stored per biome. Extra chests will be completely ignored! You will get warnings if this is too low, so if you see messages about chest overflow, consider increasing this. Note that this is per-world, so there is no need to increase it for parallel world searches. Larger biomes obviously have more chests.
 - Max tries dictates how many tries the generator will attempt to make for world generation. Use logging level 3 to see how many invalid maps are left on each try. Each try takes quite a bit of time, so running 5 tries but only being able to check 70% of maps is significantly faster than running 50 tries and checking 99.99% of them. There isn't much reason you should have to mess with this setting.
 - Debug logging level does what it says on the tin. There are 7 logging levels, from 0 to 6, but anything above 4 will spam the console with a LOT of information, most of which is probably not useful except for debugging.
