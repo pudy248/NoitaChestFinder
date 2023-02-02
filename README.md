@@ -32,16 +32,25 @@ A: Make sure there aren't any typos in your search list! This is the most common
 
 ## Search string syntax
 The filter string functionality is relatively versatile. Here are all of its features, in order of complexity.
-- Search for chests containing at least a single specified item by entering its name. All searches except those with '-' can include extra items besides the searched ones. Ex. "kiuaskivi"
-- Search for multiple items (AND) in a single chest by entering their names separated by spaces. Ex. "kiuaskivi gold_nuggets"
-- Search for multiple possible items (OR) in a single chest by entering their names separated by '|'. Ex. "vuoksikivi|kakkakikkare"
-- Search for chests containing at minimum a specific number of items with the wildcard '\*' Ex. "\* \* \*" will return all chests containing at least three items. "chaos_die \*" will return all chests containing a chaos die and at least one other item.
-- Search for potions by type, like "potion_normal", "potion_secret", and "potion_random_material" by entering their names like a normal item. This only functions when -e is not being used.
-- Specific potion contents can be searched by enabling potion contents search with the -e flag and searching "potion_" followed by the material's name in the game code. Ex. "potion_urine" for urine or "potion_magic_liquid_hp_regeneration_unstable" for lively concoction (what a mouthful!).
-- Blacklist items from returned chests by prefixing their names with '-'. Ex. "* * -gold_nuggets" will return all chests containing at least 2 items and no gold nuggets.
-- Search for exact matches by including '-' on its own in a query. Ex. "wand_T4NS -" will return chests containing a tier 4 non-shuffle wand and nothing else.
-- Aggregate searches between all chests in a seed by adding the option -a. This will allow queries like "kiuaskivi kiuaskivi" to return 2 chests in the same seed that each contain just a single kiuaskivi.
-- Search item pedestals as well with -k. Eggs and broken wands can only spawn on pedestals, so use this flag when searching for them.
+- Search for chests containing at least a single specified item by entering its name. All searches except those with '-' can include extra items besides the searched ones. Ex. `-l "kiuaskivi"` returns all chests in a seed with at least one kiuaskivi.
+
+- Search for multiple items (AND) in a single chest by entering their names separated by spaces. Ex. `-l "kiuaskivi gold_nuggets"` returns all chests in a seed with both a kiuaskivi and gold nuggets.
+
+- Aggregate searches between all chests in a seed by adding the option -a. Ex. `-l "kiuaskivi kiuaskivi" -a` will return all seeds where two kiuaskivis appear in any chests, and return the position of both chests.
+
+- Search for multiple possible items (OR) in a single chest by entering their names separated by '|'. Ex. `-l "vuoksikivi|kakkakikkare"` will return all chests with either a vuoksikivi or a kakkakikkare.
+
+- Search for chests containing at minimum a specific number of items with the wildcard '\*' Ex. `-l "\* \* \*"` will return all chests containing at least three items. `-l "chaos_die \*"` will return all chests containing a chaos die and at least one other item.
+
+- Search for potions by type, like `potion_normal`, `potion_secret`, and `potion_random_material` by entering their names like a normal item. Ex. `-l "potion_random_material"` will return all chests containing random material potions, regardless of what the actual contents of the potion are.
+
+- Specific potion contents can be searched by enabling potion contents search with the -e flag and searching "potion_" followed by the material's name in the game code. Ex. `-l "potion_urine" -e` for urine jars or `-l "potion_magic_liquid_hp_regeneration_unstable" -e` for lively concoction (what a mouthful!).
+
+- Search item pedestals as well with -k. Eggs and broken wands can only spawn on pedestals, so use this flag when searching for them. Ex. `-l "egg_purple" -k` will return all item pedestals with purple eggs on them. Aggregate searches are recommended for pedestals, since they cannot have multiple items per pedestal.
+
+- Blacklist items from returned chests by prefixing their names with '-'. Ex. `-l "* * -gold_nuggets"` will return all chests containing at least 2 items and no gold nuggets.
+
+- Search for exact matches by including '-' on its own in a query. Ex. `-l "wand_T4NS -"` will return chests containing a tier 4 non-shuffle wand and no additional items.
 
 ## Other biomes
 Currently only the mines are fully supported. Every main path biome should work with similar accuracy, but side biomes are by no means guaranteed to function at as high of an accuracy or even at all. All biomes use their code names.
