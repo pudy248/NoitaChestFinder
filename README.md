@@ -18,6 +18,10 @@ Q: The program said there was a chest where there wasn't one!
 
 A: Read the disclaimer at the top of this readme. The program is occasionally wrong, but it's right often enough to be useful. I will try and solve the accuracy issue as soon as I find out what's causing it.
 
+Q: How quickly does this run?
+
+A: It depends on your hardware. Most graphics cards should be able to check at least 500 seeds per second, but better ones can easily reach 2-3000 seeds a second. On my machine, with an RTX 2060, I can go through roughly 30 million seeds an hour.
+
 Q: There aren't any results for my search!
 
 A: Make sure there aren't any typos in your search list! This is the most common cause of empty searches. Also, make sure you aren't searching for something too rare! Having multiple items in a chest is rare in the first place, and searching for 3 or more specific items (ex. 3 paha silmas) in a normal chest will likely give you no results, as these chests are often less than 1 in 100 million! Also, double check that you aren't searching for greed-only items without -g or non-greed items with -g.
