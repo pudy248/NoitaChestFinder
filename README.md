@@ -34,9 +34,9 @@ A: Make sure there aren't any typos in your search list! This is the most common
 The filter string functionality is relatively versatile. Here are all of its features, in order of complexity.
 - Search for chests containing at least a single specified item by entering its name. All searches except those with '-' can include extra items besides the searched ones. Ex. `-l "kiuaskivi"` returns all chests in a seed with at least one kiuaskivi.
 
-- Search for multiple items (AND) in a single chest by entering their names separated by spaces. Ex. `-l "kiuaskivi gold_nuggets"` returns all chests in a seed with both a kiuaskivi and gold nuggets.
+- Search for multiple items (AND) in a single chest by entering their names separated by spaces. Ex. `-l "kiuaskivi kiuaskivi"` returns all chests in a seed with two kiuaskivis in the same chest.
 
-- Aggregate searches between all chests in a seed by adding the option -a. Ex. `-l "kiuaskivi kiuaskivi" -a` will return all seeds where two kiuaskivis appear in any chests, and return the position of both chests.
+- Aggregate searches between all chests in a seed by adding the option -a. Ex. `-l "ukkoskivi ukkoskivi" -a` will return all seeds where two ukkoskivis appear in any chests, and returns the position of both chests.
 
 - Search for multiple possible items (OR) in a single chest by entering their names separated by '|'. Ex. `-l "vuoksikivi|kakkakikkare"` will return all chests with either a vuoksikivi or a kakkakikkare.
 
