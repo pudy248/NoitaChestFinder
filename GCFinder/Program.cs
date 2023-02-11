@@ -1,5 +1,6 @@
 ﻿using GCFinder;
 using CommandLine;
+using System.Diagnostics;
 public class ConfigState
 
 {
@@ -77,6 +78,10 @@ public class Program
 {
 	static void Main(string[] args)
 	{
+		//idk if this does anything but it should prevent system lag and just slow down the search instead of taking more resources
+		using (Process p = Process.GetCurrentProcess())
+			p.PriorityClass = ProcessPriorityClass.BelowNormal;
+
 		DateTime lStartTime = DateTime.Now;
 
 		Parser.Default.ParseArguments<ConfigState>(args).WithParsed(opt =>
@@ -102,7 +107,7 @@ public class Program
 			int i = 0;
 
 			if (!opt.fromLastSeed) File.WriteAllText("seed.txt", $"{opt.seedStart}");
-			if (opt.outputPath != "" && (!opt.fromLastSeed || !File.Exists("seed.txt"))) File.Delete(opt.outputPath);
+			if (opt.outputPath != "" && !opt.fromLastSeed) File.Delete(opt.outputPath);
 			while (true)
 			{
 				DateTime startTime = DateTime.Now;
