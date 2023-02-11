@@ -32,7 +32,7 @@ public static class Wang
 		byte checkItems);
 
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public static extern void free_array(IntPtr block);
+	public static unsafe extern void free_array(void* block);
 
 	static string DecodeItem(byte item, bool greed)
 	{
@@ -310,10 +310,15 @@ public static class Wang
 		if (o.loggingLevel >= 2) Console.WriteLine($"DLL time: {lFullExec.TotalSeconds} sec");
 
 		pinnedTileData.Free();
-		byte* bytePtr = (byte*)pointer.ToPointer();
+		void* retPointers = pointer.ToPointer();
+		byte* chestPtr = *(byte**)retPointers;
+		byte* imgPtr = *((byte**)retPointers + 1);
+		Image i = Helpers.BytePtrToImage(imgPtr, (int)map_w, (int)map_h);
+		i.Save("test.png");
 
-		List<Chest>[] ret = ReadChestArray(bytePtr, o);
-		free_array(pointer);
+		List<Chest>[] ret = ReadChestArray(chestPtr, o);
+		free_array(chestPtr);
+		free_array(imgPtr);
 		return ret;
 	}
 

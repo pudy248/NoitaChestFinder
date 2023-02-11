@@ -21,7 +21,7 @@ public class ConfigState
 	[Option('p', "parallel-worlds", Required = false, HelpText = "Number of parallel worlds in either direction to search. 0 only searches the main world.", Default = 0U)]
 	public uint pwCount { get; set; }
 
-	[Option('n', "ng-plus", Required = false, HelpText = "NG+ number to search. Currently only supports NG.", Default = 0U)]
+	//[Option('n', "ng-plus", Required = false, HelpText = "NG+ number to search. Currently only supports NG.", Default = 0U)]
 	public uint ngPlus { get; set; }
 
 	[Option('l', "loot-search", Required = false, HelpText = "Loot to search for in chests. Check the readme for details on usage.", Default = "sampo")]
@@ -81,6 +81,8 @@ public class Program
 
 		Parser.Default.ParseArguments<ConfigState>(args).WithParsed(opt =>
 		{
+			if (opt.seedCount == 1) opt.maxTries = 99;
+
 			opt.lootSeparated = opt.lootSearch.Split(" ").ToList();
 			foreach(string s in opt.lootSeparated)
 			{
