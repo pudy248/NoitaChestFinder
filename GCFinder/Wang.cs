@@ -313,8 +313,11 @@ public static class Wang
 		void* retPointers = pointer.ToPointer();
 		byte* chestPtr = *(byte**)retPointers;
 		byte* imgPtr = *((byte**)retPointers + 1);
-		Image i = Helpers.BytePtrToImage(imgPtr, (int)map_w, (int)map_h);
-		i.Save("test.png");
+		if (o.seedCount == 1)
+		{
+			Image i = Helpers.BytePtrToImage(imgPtr, (int)map_w, (int)map_h);
+			i.Save($"{o.seedStart}_wang.png");
+		}
 
 		List<Chest>[] ret = ReadChestArray(chestPtr, o);
 		free_array(chestPtr);
