@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
 
 namespace GCFinder;
 public static class STATICDATA
@@ -35,37 +37,37 @@ public static class STATICDATA
 		{ "solid_wall_tower_9", "3d3e3f" },
 		{ "robobase", "4e5267" },
 	};
-	public static Dictionary<string, Image> colorToWang = new()
+	public static Dictionary<string, Image<Rgb24>> colorToWang = new()
 	{
-		{ "d57917", Image.FromFile("wang_tiles/coalmine.png") },
-		{ "d56517", Image.FromFile("wang_tiles/coalmine_alt.png") },
-		{ "124445", Image.FromFile("wang_tiles/excavationsite.png") },
-		{ "e861f0", Image.FromFile("wang_tiles/fungicave.png") },
-		{ "1775d5", Image.FromFile("wang_tiles/snowcave.png") },
-		{ "0046ff", Image.FromFile("wang_tiles/snowcastle.png") },
-		{ "808000", Image.FromFile("wang_tiles/rainforest.png") },
-		{ "a08400", Image.FromFile("wang_tiles/rainforest_open.png") },
-		{ "375c00", Image.FromFile("wang_tiles/rainforest_dark.png") },
-		{ "008000", Image.FromFile("wang_tiles/vault.png") },
-		{ "786c42", Image.FromFile("wang_tiles/crypt.png") },
-		{ "006c42", Image.FromFile("wang_tiles/wand.png") },
-		{ "0080a8", Image.FromFile("wang_tiles/vault_frozen.png") },
-		//{ "3c0f0a", Image.FromFile("wang_tiles/the_end.png") },
-		//{ "d3e6f0", Image.FromFile("wang_tiles/the_sky.png") },
-		{ "726186", Image.FromFile("wang_tiles/wizardcave.png") },
-		{ "e1cd32", Image.FromFile("wang_tiles/sandcave.png") },
-		{ "967f11", Image.FromFile("wang_tiles/pyramid.png") },
-		{ "a861ff", Image.FromFile("wang_tiles/fungiforest.png") },
-		{ "3d3e37", Image.FromFile("wang_tiles/coalmine.png") },
-		{ "3d3e38", Image.FromFile("wang_tiles/excavationsite.png") },
-		{ "3d3e39", Image.FromFile("wang_tiles/snowcave.png") },
-		{ "3d3e3a", Image.FromFile("wang_tiles/snowcastle.png") },
-		{ "3d3e3b", Image.FromFile("wang_tiles/fungicave.png") },
-		{ "3d3e3c", Image.FromFile("wang_tiles/rainforest.png") },
-		{ "3d3e3d", Image.FromFile("wang_tiles/vault.png") },
-		{ "3d3e3e", Image.FromFile("wang_tiles/crypt.png") },
-		{ "3d3e3f", Image.FromFile("wang_tiles/the_end.png") },
-		{ "4e5267", Image.FromFile("wang_tiles/robobase.png") },
+		{ "d57917", Image.Load<Rgb24>("wang_tiles/coalmine.png") },
+		{ "d56517", Image.Load<Rgb24>("wang_tiles/coalmine_alt.png") },
+		{ "124445", Image.Load<Rgb24>("wang_tiles/excavationsite.png") },
+		{ "e861f0", Image.Load<Rgb24>("wang_tiles/fungicave.png") },
+		{ "1775d5", Image.Load<Rgb24>("wang_tiles/snowcave.png") },
+		{ "0046ff", Image.Load<Rgb24>("wang_tiles/snowcastle.png") },
+		{ "808000", Image.Load<Rgb24>("wang_tiles/rainforest.png") },
+		{ "a08400", Image.Load<Rgb24>("wang_tiles/rainforest_open.png") },
+		{ "375c00", Image.Load<Rgb24>("wang_tiles/rainforest_dark.png") },
+		{ "008000", Image.Load<Rgb24>("wang_tiles/vault.png") },
+		{ "786c42", Image.Load<Rgb24>("wang_tiles/crypt.png") },
+		{ "006c42", Image.Load<Rgb24>("wang_tiles/wand.png") },
+		{ "0080a8", Image.Load<Rgb24>("wang_tiles/vault_frozen.png") },
+		//{ "3c0f0a", Image.Load<Rgb24>("wang_tiles/the_end.png") },
+		//{ "d3e6f0", Image.Load<Rgb24>("wang_tiles/the_sky.png") },
+		{ "726186", Image.Load<Rgb24>("wang_tiles/wizardcave.png") },
+		{ "e1cd32", Image.Load<Rgb24>("wang_tiles/sandcave.png") },
+		{ "967f11", Image.Load<Rgb24>("wang_tiles/pyramid.png") },
+		{ "a861ff", Image.Load<Rgb24>("wang_tiles/fungiforest.png") },
+		{ "3d3e37", Image.Load<Rgb24>("wang_tiles/coalmine.png") },
+		{ "3d3e38", Image.Load<Rgb24>("wang_tiles/excavationsite.png") },
+		{ "3d3e39", Image.Load<Rgb24>("wang_tiles/snowcave.png") },
+		{ "3d3e3a", Image.Load<Rgb24>("wang_tiles/snowcastle.png") },
+		{ "3d3e3b", Image.Load<Rgb24>("wang_tiles/fungicave.png") },
+		{ "3d3e3c", Image.Load<Rgb24>("wang_tiles/rainforest.png") },
+		{ "3d3e3d", Image.Load<Rgb24>("wang_tiles/vault.png") },
+		{ "3d3e3e", Image.Load<Rgb24>("wang_tiles/crypt.png") },
+		{ "3d3e3f", Image.Load<Rgb24>("wang_tiles/the_end.png") },
+		{ "4e5267", Image.Load<Rgb24>("wang_tiles/robobase.png") },
 	};
 
 	public static Dictionary<string, List<MapArea>> colorToArea = new()
@@ -152,7 +154,7 @@ public class MapGenerator
 	{
 		string color = STATICDATA.nameToColor[biome];
 		List<MapArea> area = STATICDATA.colorToArea[color];
-		Image wangMap = STATICDATA.colorToWang[color];
+		Image<Rgb24> wangMap = STATICDATA.colorToWang[color];
 		List<Chest>[] aggregateRet = new List<Chest>[options.batch];
 		for (int i = 0; i < options.batch; i++) aggregateRet[i] = new();
 

@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.InteropServices;
 
 namespace GCFinder;
@@ -295,7 +296,7 @@ public static class Wang
 		return ret;
 	}
 
-	public static unsafe List<Chest>[] GenerateMap(Image wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, int worldX, int worldY, ConfigState o)
+	public static unsafe List<Chest>[] GenerateMap(Image<Rgb24> wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, int worldX, int worldY, ConfigState o)
 	{
 		byte[] wangData = Helpers.ImageToByteArray(wang);
 		GCHandle pinnedTileData = GCHandle.Alloc(wangData, GCHandleType.Pinned);
@@ -313,7 +314,7 @@ public static class Wang
 		void* retPointers = pointer.ToPointer();
 		byte* chestPtr = *(byte**)retPointers;
 		byte* imgPtr = *((byte**)retPointers + 1);
-		if (o.seedCount == 1)
+		if (true)
 		{
 			Image i = Helpers.BytePtrToImage(imgPtr, (int)map_w, (int)map_h);
 			i.Save($"{o.seedStart}_wang.png");
