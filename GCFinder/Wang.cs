@@ -314,7 +314,7 @@ public static class Wang
 		void* retPointers = pointer.ToPointer();
 		byte* chestPtr = *(byte**)retPointers;
 		byte* imgPtr = *((byte**)retPointers + 1);
-		if (true)
+		if (o.seedCount == 1)
 		{
 			Image i = Helpers.BytePtrToImage(imgPtr, (int)map_w, (int)map_h);
 			i.Save($"{o.seedStart}_wang.png");
