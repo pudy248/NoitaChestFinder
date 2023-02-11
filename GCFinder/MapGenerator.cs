@@ -179,9 +179,9 @@ public class MapGenerator
 				y1,
 				options
 			);
-			Parallel.For(0, options.batch, i =>
+			Parallel.For(0, options.batch, j =>
 			{
-				aggregateRet[i].AddRange(chests[i]);
+				aggregateRet[j].AddRange(chests[j]);
 			});
 		}
 		return aggregateRet;

@@ -2,6 +2,7 @@
   "profiles": {
     "GCFinder": {
       "commandName": "Project",
+      "commandLineArgs": "-z 20000 --max-items-per-chest 10 --max-chests-per-biome 20 -l \"kuu\" --min-y 820 --max-y 822",
       "nativeDebugging": true
     }
   }
