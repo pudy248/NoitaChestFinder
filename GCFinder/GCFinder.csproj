@@ -28,13 +28,7 @@
     <None Update="WangTiler.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="WangTilerCUDA.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="WangTilerCUDA.exp">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="WangTilerCUDA.lib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="WangTilerCUDA.pdb">
