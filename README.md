@@ -1,12 +1,10 @@
 # pudy248's Chest Loot Searcher
-DISCLAIMER: There are a few bugs in the Wang tiler worldgen, which makes this program only correct ~60-70% of the time. If a seed doesn't have a chest at the reported position, try another seed. Sometimes it can take a few attempts.
-
-DISCLAIMER 2: Noita rounds numbers to 6 significant figures! This means chest RNG just **doesn't work** correctly after ~27 parallel worlds, since the position used for RNG is different than the position the chest spawned on! Don't check chests >27 PWs out expecting accurate contents! Moreover, in far parallel worlds, chests often don't even spawn!. Using `-p` > 27 is **not** recommended for this reason!
+DISCLAIMER: There are a few bugs in the Wang tiler worldgen, which makes this program only correct ~30-40% of the time. If a seed doesn't have a chest at the reported position, try another seed. Sometimes it can take a few attempts.
 
 ## Installation
-Simply download and extract the latest release and open a command prompt in the folder. Make sure CUDA and .NET are installed on your system. Then, in a command prompt, type in GCFinder followed by your desired options.
+Simply download and extract the latest release and open a command prompt in the folder. Make sure CUDA and .NET are installed on your system. Then, in a command prompt, type in GCFinder (or ./GCFinder on Linux) followed by your desired options.
 
-For advanced users, you can also compile this program from scratch if you want to tinker with things. The Visual Studio solution should have everything configured properly.
+For advanced users, you can also compile this program from scratch if you want to tinker with things. Visual Studio is recommended for Windows users, but on Linux you can use `dotnet build` for the .NET portion and `nvcc -o WangTilerCUDA.dll -Xcompiler -fPIC --shared wang.cu` for the CUDA portion. 
 
 ## Usage
 This program won't do very much if you just run the EXE. All options are available in the form of command-line arguments. Run GCFinder --help in CMD for a short summary of each one. The option you'll use most is -l, as that is the loot filter for chests. A list of valid items can be found in matchlist.txt, and advanced syntax is documented in the option documentation below.
