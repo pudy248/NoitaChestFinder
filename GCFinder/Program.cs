@@ -48,7 +48,7 @@ public class ConfigState
 	[Option("max-items-per-chest", Required = false, HelpText = "Maximum number of items per chest to store. Overflow items will not be included in search. Increases VRAM usage.", Default = 25U)]
 	public uint maxChestContents { get; set; }
 
-	[Option("max-chests-per-biome", Required = false, HelpText = "Maximum number of chests per biome to store. Increases VRAM usage.", Default = 10U)]
+	[Option("max-chests-per-biome", Required = false, HelpText = "Maximum number of chests per biome to store. Increases VRAM usage.", Default = 25U)]
 	public uint maxChestsPerBiome { get; set; }
 
 	[Option('d', "debug-logging-level", Required = false, HelpText = "Debug logging level.", Default = 1U)]
@@ -88,7 +88,7 @@ public class Program
 
 		Parser.Default.ParseArguments<ConfigState>(args).WithParsed(opt =>
 		{
-			if (opt.seedCount == 1) opt.maxTries = 99;
+			opt.batch = Math.Min(opt.batch, opt.seedCount);
 
 			opt.lootSeparated = opt.lootSearch.Split(" ").ToList();
 			foreach(string s in opt.lootSeparated)

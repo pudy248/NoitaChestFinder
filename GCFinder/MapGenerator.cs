@@ -201,7 +201,7 @@ public class MapGenerator
 		if(options.maxY != -1)
 			chests = chests.Where(c => c.y < options.maxY).ToList();
 
-		chests = chests.Where(c => c.seed < options.seedStart + options.seedCount).ToList();
+		chests = chests.Where(c => c.seed < options.currentSeed + options.seedCount).ToList();
 		chests = chests.OrderBy(c => c.seed).ToList();
 
 		StreamWriter file = null;

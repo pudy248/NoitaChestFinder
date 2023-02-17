@@ -6,9 +6,6 @@ namespace GCFinder;
 
 public static class Wang
 {
-	//program segfaults on batch sizes smaller than this. Don't know why, don't care, we'll just cap the batch size sent to the kernel.
-	const uint MAGIC_NUMBER = 724;
-
 	static string threadlock = "bottom text";
 
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
@@ -200,13 +197,16 @@ public static class Wang
 		List<Chest>[] retArr = new List<Chest>[o.batch];
 		Parallel.For(0, o.batch, i =>
 		{
+			uint chestSize = 9 + o.maxChestContents;
+			uint chestSegmentSize = sizeof(uint) + o.maxChestsPerBiome * (2 * o.pwCount + 1) * chestSize;
 			List<Chest> ret = new List<Chest>();
-			byte* chestBlock = ptr + i * ((9 + o.maxChestContents) * (2 * o.pwCount + 1) * o.maxChestsPerBiome + sizeof(uint)) + sizeof(uint);
-			int count = *(((int*)chestBlock) - 1);
+			byte* chestBlock = ptr + i * chestSegmentSize;
+			int count = *(int*)chestBlock;
+			if (o.loggingLevel >= 5) Console.WriteLine($"{o.currentSeed + i} chest count: {count}");
 
 			for (int j = 0; j < count; j++)
 			{
-				byte* c = chestBlock + j * (9 + o.maxChestContents);
+				byte* c = chestBlock + 4 + j * chestSize;
 				int x = *(int*)c;
 				int y = *(int*)(c + 4);
 				byte contentsCount = *(c + 8);
@@ -303,7 +303,7 @@ public static class Wang
 
 		DateTime lStartTime = DateTime.Now;
 		IntPtr pointer = generate_block(wangData, tiles_w, tiles_h, map_w, map_h, isCoalMine, worldX, worldY, o.currentSeed + o.ngPlus, 
-			Math.Max(o.batch, MAGIC_NUMBER), o.maxTries, o.pwCount, (byte)o.ngPlus, (byte)o.loggingLevel, o.maxChestContents, o.maxChestsPerBiome, 
+			o.batch, o.maxTries, o.pwCount, (byte)o.ngPlus, (byte)o.loggingLevel, o.maxChestContents, o.maxChestsPerBiome, 
 			(byte)(o.greedCurse ? 1 : 0), (byte)(o.checkItems ? 1 : 0));
 
 		DateTime lEndTime = DateTime.Now;
@@ -317,7 +317,8 @@ public static class Wang
 		if (o.seedCount == 1)
 		{
 			Image i = Helpers.BytePtrToImage(imgPtr, (int)map_w, (int)map_h);
-			i.Save($"{o.seedStart}_wang.png");
+			if(!Directory.Exists("wang_outputs")) Directory.CreateDirectory("wang_outputs");
+			i.Save($"wang_outputs/{o.currentSeed}.png");
 		}
 
 		List<Chest>[] ret = ReadChestArray(chestPtr, o);
