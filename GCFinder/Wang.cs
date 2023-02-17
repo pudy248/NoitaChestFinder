@@ -6,8 +6,6 @@ namespace GCFinder;
 
 public static class Wang
 {
-	static string threadlock = "bottom text";
-
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public static extern IntPtr generate_block(
 		byte[] tiles_data,
@@ -144,7 +142,7 @@ public static class Wang
 
 	static int ListIndexOfSubstring(List<string> list, string sub)
 	{
-		for (int i = 0; i < list.Count; i++) if (list[i] == sub || list[i].Contains("|") && list[i].Contains(sub)) return i;
+		for (int i = 0; i < list.Count; i++) if (list[i] == sub || list[i].Contains("|") && list[i].Split("|").Contains(sub)) return i;
 		return -1;
 	}
 

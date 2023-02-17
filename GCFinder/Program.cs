@@ -132,7 +132,13 @@ public class Program
 					MapGenerator gen = new MapGenerator();
 					gen.ProvideMap(biomes, opt);
 				}
-				else
+				else if(opt.biome == "tower")
+				{
+					List<string> biomes = new List<String>() { "solid_wall_tower_1", "solid_wall_tower_2", "solid_wall_tower_3", "solid_wall_tower_4", "solid_wall_tower_5", "solid_wall_tower_6", "solid_wall_tower_7", "solid_wall_tower_8" };
+					MapGenerator gen = new MapGenerator();
+					gen.ProvideMap(biomes, opt);
+				}
+				else if(STATICDATA.nameToColor.Keys.Any(s => opt.biome.Contains(s)))
 				{
 					MapGenerator gen = new MapGenerator();
 					gen.ProvideMap(opt.biome.Split(' ', StringSplitOptions.TrimEntries).ToList(), opt);
