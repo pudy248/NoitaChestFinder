@@ -44,7 +44,7 @@ The filter string functionality is relatively versatile. Here are all of its fea
 
 - Search for potions by type, like `potion_normal`, `potion_secret`, and `potion_random_material` by entering their names like a normal item. Ex. `-l "potion_random_material"` will return all chests containing random material potions, regardless of what the actual contents of the potion are.
 
-- Specific potion contents can be searched by enabling potion contents search with the `--potions` flag and searching "potion_" followed by the material's LUA name. Ex. `-l "potion_urine" --potions` for urine jars or `-l "potion_magic_liquid_hp_regeneration_unstable" --potions` for lively concoction (what a mouthful!).
+- Specific potion contents can be searched by enabling potion contents search with the `--potions` flag and searching `potion_` followed by the material's LUA name. Ex. `-l "potion_urine" --potions` for urine jars or `-l "potion_magic_liquid_hp_regeneration_unstable" --potions` for lively concoction (what a mouthful!).
 
 - Search item pedestals as well with `--pedestals`. Eggs and broken wands can only spawn on pedestals, so use this flag when searching for them. Ex. `-l "egg_purple" --pedestals` will return all item pedestals with purple eggs on them. Aggregate searches are recommended for pedestals, since pedestals cannot have multiple items.
 
