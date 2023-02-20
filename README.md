@@ -28,7 +28,7 @@ A: It depends on your hardware. Most graphics cards should be able to check at l
 
 Q: There aren't any results for my search!
 
-A: Make sure there aren't any typos in your search list! This is the most common cause of empty searches. Also, make sure you aren't searching for something too rare! Having multiple items in a chest is rare in the first place, and searching for 3 or more specific items (ex. 3 paha silmas) in a normal chest will likely give you no results, as these chests are often less than 1 in 100 million! Also, double check that you aren't searching for greed-only items without -g or non-greed items with -g.
+A: Make sure there aren't any typos in your search list! This is the most common cause of empty searches. Also, make sure you aren't searching for something too rare! Having multiple items in a chest is rare in the first place, and searching for 3 or more specific items (ex. 3 paha silmas) in a normal chest will likely give you no results, as these chests are often less than 1 in 100 million! Also, double check that you aren't searching for greed-only items without `--greed`.
 
 ## Search string syntax
 The filter string functionality is relatively versatile. Here are all of its features, in order of complexity.
