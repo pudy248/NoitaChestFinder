@@ -16,9 +16,9 @@ public class ConfigState
 	public uint seedCount { get; set; }
 
 	[Option('c', "continue", Required = false, HelpText = "Continue from where the last execution ended.", Default = false)]
-	public bool fromLastSeed { get; set; }
+	public bool continueLast { get; set; }
 
-	[Option('b', "biome", Required = false, HelpText = "Biome to search. Check the readme for details on usage.", Default = "coalmine")]
+	[Option("biome", Required = false, HelpText = "Biome to search. Check the readme for details on usage.", Default = "coalmine")]
 	public string biome { get; set; }
 
 	[Option('p', "parallel-worlds", Required = false, HelpText = "Number of parallel worlds in either direction to search. 0 only searches the main world.", Default = 0U)]
@@ -30,31 +30,34 @@ public class ConfigState
 	[Option('l', "loot-search", Required = false, HelpText = "Loot to search for in chests. Check the readme for details on usage.", Default = "sampo")]
 	public string lootSearch { get; set; }
 
-	[Option('g', "greed-curse", Required = false, HelpText = "Is the greed curse active?", Default = false)]
+	[Option("greed", Required = false, HelpText = "Activate greed curse.", Default = false)]
 	public bool greedCurse { get; set; }
 
-	[Option('k', "check-items", Required = false, HelpText = "Check item pedestals as well as chests.", Default = false)]
+	[Option("pedestals", Required = false, HelpText = "Check potion/item pedestals.", Default = false)]
 	public bool checkItems { get; set; }
 
-	[Option('e', "search-potions", Required = false, HelpText = "Should potion contents be computed?", Default = false)]
+	[Option("potions", Required = false, HelpText = "Check potion material contents.", Default = false)]
 	public bool potionContents { get; set; }
+
+	[Option("spells", Required = false, HelpText = "Check random spell contents.", Default = false)]
+	public bool spellContents { get; set; }
 
 	[Option('a', "aggregate-items", Required = false, HelpText = "Expands multi-item search scope to the entire world instead of single chests.", Default = false)]
 	public bool aggregate { get; set; }
 
-	[Option('o', "output-path", Required = false, HelpText = "File to write outputs to. Leave blank to only log to the console.", Default = "out.txt")]
+	[Option("output-path", Required = false, HelpText = "File to write outputs to. Leave blank to only log to the console.", Default = "out.txt")]
 	public string outputPath { get; set; }
 
-	[Option("max-items-per-chest", Required = false, HelpText = "Maximum number of items per chest to store. Overflow items will not be included in search. Increases VRAM usage.", Default = 25U)]
+	[Option("max-items", Required = false, HelpText = "Maximum number of items per chest to store. Overflow items will not be included in search. Increases VRAM usage.", Default = 25U)]
 	public uint maxChestContents { get; set; }
 
-	[Option("max-chests-per-biome", Required = false, HelpText = "Maximum number of chests per biome to store. Increases VRAM usage.", Default = 25U)]
+	[Option("max-chests", Required = false, HelpText = "Maximum number of chests per biome to store. Increases VRAM usage.", Default = 25U)]
 	public uint maxChestsPerBiome { get; set; }
 
 	[Option('d', "debug-logging-level", Required = false, HelpText = "Debug logging level.", Default = 1U)]
 	public uint loggingLevel { get; set; }
 
-	[Option('t', "max-tries", Required = false, HelpText = "Maximum generation attempts.", Default = 10U)]
+	[Option("tries", Required = false, HelpText = "Maximum generation attempts. Noita uses 100.", Default = 10U)]
 	public uint maxTries { get; set; }
 
 	[Option("min-x", Required = false, HelpText = "Minimum X position.", Default = -1)]
@@ -85,10 +88,29 @@ public class Program
 			p.PriorityClass = ProcessPriorityClass.BelowNormal;
 
 		DateTime lStartTime = DateTime.Now;
-
+		
 		Parser.Default.ParseArguments<ConfigState>(args).WithParsed(opt =>
 		{
+			if (opt.continueLast && File.Exists("seed.txt"))
+			{
+				string[] file = File.ReadAllLines("seed.txt");
+				List<string> intermediateArgs = file.Skip(1).Where(s => s != "-c").ToList();
+				for(int j = 0; j < intermediateArgs.Count; j++)
+				{
+					if(intermediateArgs[j] == "-s")
+					{
+						intermediateArgs.RemoveAt(j);
+						intermediateArgs.RemoveAt(j);
+					}
+				}
+				intermediateArgs.Add("-s");
+				intermediateArgs.Add(file[0]);
+				Main(intermediateArgs.ToArray());
+				return;
+			}
+
 			opt.batch = Math.Min(opt.batch, opt.seedCount);
+			opt.currentSeed = opt.seedStart;
 
 			opt.lootSeparated = opt.lootSearch.Split(" ").ToList();
 			foreach(string s in opt.lootSeparated)
@@ -107,18 +129,15 @@ public class Program
 			}
 
 			int i = 0;
-
-			if (!opt.fromLastSeed) File.WriteAllText("seed.txt", $"{opt.seedStart}");
-			if (opt.outputPath != "" && !opt.fromLastSeed) File.Delete(opt.outputPath);
+			if (opt.outputPath != "" && !opt.continueLast) File.Delete(opt.outputPath);
 			while (true)
 			{
-				DateTime startTime = DateTime.Now;
-				if (!File.Exists("seed.txt")) File.WriteAllText("seed.txt", opt.seedStart.ToString());
-				string currentFile = File.ReadAllText("seed.txt");
-				uint currentSeed = uint.Parse(currentFile);
+				DateTime startTime = DateTime.Now; 
+				List<string> seedText = new List<string>() { $"{opt.currentSeed}" };
+				seedText.AddRange(args);
+				File.WriteAllLines("seed.txt", seedText);
 
-				if (currentSeed >= opt.seedStart + opt.seedCount) break;
-				opt.currentSeed = currentSeed;
+				if (opt.currentSeed >= opt.seedStart + opt.seedCount) break;
 
 				if (opt.biome == "full")
 				{
@@ -145,8 +164,7 @@ public class Program
 
 				}
 
-				currentSeed += opt.batch;
-				File.WriteAllText("seed.txt", $"{currentSeed}");
+				opt.currentSeed += opt.batch;
 				i++;
 				DateTime endTime = DateTime.Now;
 				TimeSpan fullExec = endTime - startTime;

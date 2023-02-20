@@ -25,14 +25,37 @@ public static class Wang
 		uint maxChestContents,
 		uint maxChestsPerWorld,
 		byte greedCurse,
-		byte checkItems);
+		byte checkItems,
+		byte expandSpells);
 
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public static unsafe extern void free_array(void* block);
 
-	static string DecodeItem(byte item, bool greed)
+	static string DecodeItem(byte item, bool greed, uint seed, int x, int y)
 	{
-		switch(item)
+		if((item & 0x80) > 0 && (item & 1) == 0)
+		{
+			byte rndCount = (byte)((item >> 1) & 0x3F);
+			NoitaRandom rnd = new NoitaRandom(seed);
+			rnd.SetRandomSeed(x, y);
+			for (int i = 0; i < rndCount; i++) rnd.Next();
+			SpellLists.Spell res = SpellLists.all_spells[0];
+			bool valid = false;
+			while (!valid)
+			{
+				int itemno = rnd.Random(0, 392);
+				SpellLists.Spell spell = SpellLists.all_spells[itemno];
+				double sum = 0;
+				for (int i = 0; i < spell.spawn_probabilities.Length; i++) sum += spell.spawn_probabilities[i];
+				if (sum > 0)
+				{
+					valid = true;
+					res = spell;
+				}
+			}
+			return $"spell_{res.id.ToLower()}";
+		}
+		else switch(item)
 		{
 			case 0:
 				return "gold_nuggets";
@@ -131,7 +154,7 @@ public static class Wang
 			case 47:
 				return "broken_wand";
 
-			case 254:
+			case 253:
 				return "sampo";
 			case 255:
 				return "true_orb";
@@ -140,49 +163,59 @@ public static class Wang
 		}
 	}
 
-	static int ListIndexOfSubstring(List<string> list, string sub)
-	{
-		for (int i = 0; i < list.Count; i++) if (list[i] == sub || list[i].Contains("|") && list[i].Split("|").Contains(sub)) return i;
-		return -1;
-	}
-
+	//returns 1 if found, -1 if blacklisted, 0 if ignored
 	static int CheckString(List<string> positiveList, List<string> negativeList, string s)
 	{
 		if (negativeList.Contains("-" + s)) return -1;
 
-		int idx = ListIndexOfSubstring(positiveList, s);
-		if (idx != -1)
+		bool found = false;
+		for(int i = 0; i < positiveList.Count; i++)
 		{
-			positiveList.RemoveAt(idx);
-			return 1;
+			string pStr = positiveList[i];
+			if (s == pStr) { positiveList.RemoveAt(i); return 1; }
+			else if (pStr.Contains('|'))
+			{
+				string[] orList = pStr.Split('|');
+				for (int j = 0; j < orList.Length; j++)
+				{
+					string orStr = orList[j];
+					if (s == orStr) { positiveList.RemoveAt(i); return 1; }
+					else if (orStr.Contains("*"))
+					{
+						if (orStr == "*") { positiveList.RemoveAt(i); return 1; }
+						string wildcard = orStr.Substring(0, orStr.IndexOf('*'));
+						if (s.StartsWith(wildcard)) { positiveList.RemoveAt(i); return 1; }
+					}
+				}
+			}
+			else if (pStr.Contains("*"))
+			{
+				if (pStr == "*") { positiveList.RemoveAt(i); return 1; }
+				string wildcard = pStr.Substring(0, pStr.IndexOf('*'));
+				if(s.StartsWith(wildcard)) { positiveList.RemoveAt(i); return 1; }
+			}
 		}
-		else if (positiveList.Contains("*"))
-		{
-			positiveList.Remove("*");
-			return 1;
-		}
-		else if (negativeList.Contains("-")) return -1;
 		return 0;
 	}
 
-	static void ExpandAndAdd(Chest retChest, string s, bool potionContents)
+	static void ExpandAndAdd(Chest retChest, string s, bool potionContents, bool spellContents)
 	{
 		if (s == "potions_pps")
 		{
-			ExpandAndAdd(retChest, "potion_normal", potionContents);
-			ExpandAndAdd(retChest, "potion_normal", potionContents);
-			ExpandAndAdd(retChest, "potion_secret", potionContents);
+			ExpandAndAdd(retChest, "potion_normal", potionContents, spellContents);
+			ExpandAndAdd(retChest, "potion_normal", potionContents, spellContents);
+			ExpandAndAdd(retChest, "potion_secret", potionContents, spellContents);
 		}
 		else if (s == "potions_ssr")
 		{
-			ExpandAndAdd(retChest, "potion_secret", potionContents);
-			ExpandAndAdd(retChest, "potion_secret", potionContents);
-			ExpandAndAdd(retChest, "potion_random_material", potionContents);
+			ExpandAndAdd(retChest, "potion_secret", potionContents, spellContents);
+			ExpandAndAdd(retChest, "potion_secret", potionContents, spellContents);
+			ExpandAndAdd(retChest, "potion_random_material", potionContents, spellContents);
 		}
 		else if (potionContents && new string[] { "potion_normal", "potion_secret", "potion_random_material" }.Contains(s))
 		{
 			string contents = PotionLists.PotionContents(s, retChest.x, retChest.y, retChest.seed);
-			ExpandAndAdd(retChest, "potion_" + contents, potionContents);
+			ExpandAndAdd(retChest, "potion_" + contents, potionContents, spellContents);
 		}
 		else
 		{
@@ -221,8 +254,8 @@ public static class Wang
 				for (int k = 0; k < contentsCount; k++)
 				{
 					byte b = contents[k];
-					string s = DecodeItem(b, o.greedCurse);
-					ExpandAndAdd(retChest, s, o.potionContents);
+					string s = DecodeItem(b, o.greedCurse, retChest.seed, x, y);
+					ExpandAndAdd(retChest, s, o.potionContents, true);
 				}
 
 				ret.Add(retChest);
@@ -302,7 +335,7 @@ public static class Wang
 		DateTime lStartTime = DateTime.Now;
 		IntPtr pointer = generate_block(wangData, tiles_w, tiles_h, map_w, map_h, isCoalMine, worldX, worldY, o.currentSeed + o.ngPlus, 
 			o.batch, o.maxTries, o.pwCount, (byte)o.ngPlus, (byte)o.loggingLevel, o.maxChestContents, o.maxChestsPerBiome, 
-			(byte)(o.greedCurse ? 1 : 0), (byte)(o.checkItems ? 1 : 0));
+			(byte)(o.greedCurse ? 1 : 0), (byte)(o.checkItems ? 1 : 0), (byte)(o.spellContents ? 1 : 0));
 
 		DateTime lEndTime = DateTime.Now;
 		TimeSpan lFullExec = lEndTime - lStartTime;
