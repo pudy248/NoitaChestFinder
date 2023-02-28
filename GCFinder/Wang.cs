@@ -370,13 +370,13 @@ public static class Wang
 					List<string> searchList = new(o.lootPositive);
 
 					//check if valid spawn
-					if (o.minX != -1 && c.x >= o.minX)
+					if (o.minX != -1 && c.x < o.minX)
 						continue;
-					if (o.maxX != -1 && c.x < o.maxX)
+					if (o.maxX != -1 && c.x > o.maxX)
 						continue;
-					if (o.minY != -1 && c.y >= o.minY)
+					if (o.minY != -1 && c.y < o.minY)
 						continue;
-					if (o.maxY != -1 && c.y < o.maxY)
+					if (o.maxY != -1 && c.y > o.maxY)
 						continue;
 
 					(int, int) chunkCoords = Wang.GetChunkPos(c.x, c.y);
