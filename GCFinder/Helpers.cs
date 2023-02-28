@@ -8,6 +8,11 @@ namespace GCFinder;
 
 public static class Helpers
 {
+	public static string ToHex(Rgb24 color)
+	{
+		return (color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2")).ToLower();
+	}
+
 	public static unsafe byte[] ImageToByteArray(Image<Rgb24> image)
 	{
 		byte[] ret = new byte[image.Width * image.Height * 3];

@@ -27,8 +27,11 @@ public class ConfigState
 	//[Option('n', "ng-plus", Required = false, HelpText = "NG+ number to search. Currently only supports NG.", Default = 0U)]
 	public uint ngPlus { get; set; }
 
-	[Option('l', "loot-search", Required = false, HelpText = "Loot to search for in chests. Check the readme for details on usage.", Default = "sampo")]
+	[Option('l', "loot-search", Required = false, HelpText = "Loot to search for in chests. Check the readme for details on usage.", Default = "null")]
 	public string lootSearch { get; set; }
+
+	[Option('w', "wand-stats", Required = false, HelpText = "Conditions to return wands. Check the readme for details on usage.", Default = "capacity>26")]
+	public string wandStats { get; set; }
 
 	[Option("greed", Required = false, HelpText = "Activate greed curse.", Default = false)]
 	public bool greedCurse { get; set; }
@@ -37,13 +40,19 @@ public class ConfigState
 	public bool checkItems { get; set; }
 
 	[Option("potions", Required = false, HelpText = "Check potion material contents.", Default = false)]
-	public bool potionContents { get; set; }
+	public bool checkPotions { get; set; }
 
 	[Option("spells", Required = false, HelpText = "Check random spell contents.", Default = false)]
-	public bool spellContents { get; set; }
+	public bool checkSpells { get; set; }
+
+	[Option("wands", Required = false, HelpText = "Check wand stats and contents.", Default = false)]
+	public bool checkWands { get; set; }
 
 	[Option('a', "aggregate-items", Required = false, HelpText = "Expands multi-item search scope to the entire world instead of single chests.", Default = false)]
 	public bool aggregate { get; set; }
+
+	[Option("wand-and-loot", Required = false, HelpText = "Display only chests which have a wand that passes the wand filter AND loot that passes the loot filter.", Default = false)]
+	public bool wandAndLoot { get; set; }
 
 	[Option("output-path", Required = false, HelpText = "File to write outputs to. Leave blank to only log to the console.", Default = "out.txt")]
 	public string outputPath { get; set; }
@@ -72,11 +81,46 @@ public class ConfigState
 	[Option("max-y", Required = false, HelpText = "Maximum Y position.", Default = -1)]
 	public int maxY { get; set; }
 
+	[Option("EOE", Required = false, HelpText = "End of Everything mode. Ignores aggregate search. Only searches the given input seed.", Default = false)]
+	public bool EOE { get; set; }
+
+	[Option("EOE-originX", Required = false, HelpText = "Center of search in EOE mode.", Default = 0)]
+	public int EOE_originX { get; set; }
+
+	[Option("EOE-originY", Required = false, HelpText = "Center of search in EOE mode.", Default = 0)]
+	public int EOE_originY { get; set; }
+
+	[Option("EOE-radius", Required = false, HelpText = "Radius of search in EOE mode.", Default = 1000)]
+	public int EOE_radius { get; set; }
+
+	[Option("EOE-tinymode", Required = false, HelpText = "Check T10 wand drops instead of great chests. How you kill tiny on those pixels is your problem.", Default = false)]
+	public bool EOE_tinymode { get; set; }
+
+	public int EOE_x;
+	public int EOE_y;
+
 	public uint currentSeed;
-	public List<string> lootSeparated;
 
 	public List<string> lootPositive = new();
 	public List<string> lootNegative = new();
+
+	public List<WandCheck> wandChecks = new();
+}
+
+public struct WandCheck
+{
+	public enum Comparison
+	{
+		Greater,
+		Geq,
+		Equal,
+		Leq,
+		Less
+	}
+
+	public Comparison comparison;
+	public string stat;
+	public float value;
 }
 
 public class Program
@@ -88,7 +132,7 @@ public class Program
 			p.PriorityClass = ProcessPriorityClass.BelowNormal;
 
 		DateTime lStartTime = DateTime.Now;
-		
+
 		Parser.Default.ParseArguments<ConfigState>(args).WithParsed(opt =>
 		{
 			if (opt.continueLast && File.Exists("seed.txt"))
@@ -112,12 +156,51 @@ public class Program
 			opt.batch = Math.Min(opt.batch, opt.seedCount);
 			opt.currentSeed = opt.seedStart;
 
-			opt.lootSeparated = opt.lootSearch.Split(" ").ToList();
-			foreach(string s in opt.lootSeparated)
+			List<string> lootSeparated = opt.lootSearch.Split(" ").ToList();
+			foreach(string s in lootSeparated)
 			{
 				if(s.StartsWith("-")) opt.lootNegative.Add(s);
 				else if(s != "") opt.lootPositive.Add(s);
 			}
+
+			List<string> wandStatsSeparated = opt.wandStats.Split(" ").ToList();
+			foreach (string s in wandStatsSeparated)
+			{
+				WandCheck check = new();
+				string[] halves;
+				if (s.Contains("<="))
+				{
+					halves = s.Split("<=");
+					check.comparison = WandCheck.Comparison.Leq;
+				}
+				else if (s.Contains("<"))
+				{
+					halves = s.Split("<");
+					check.comparison = WandCheck.Comparison.Less;
+				}
+				else if (s.Contains(">="))
+				{
+					halves = s.Split(">=");
+					check.comparison = WandCheck.Comparison.Geq;
+				}
+				else if (s.Contains(">"))
+				{
+					halves = s.Split(">");
+					check.comparison = WandCheck.Comparison.Greater;
+				}
+				else if (s.Contains("="))
+				{
+					halves = s.Split("=");
+					check.comparison = WandCheck.Comparison.Equal;
+				}
+				else continue;
+				check.stat = halves[0];
+				check.value = float.Parse(halves[1]);
+
+				opt.wandChecks.Add(check);
+			}
+			WandGen.SortSpells();
+
 			if (opt.loggingLevel >= 3)
 			{
 				Console.Write("Positive: ");
@@ -129,8 +212,60 @@ public class Program
 			}
 
 			int i = 0;
-			if (opt.outputPath != "" && !opt.continueLast) File.Delete(opt.outputPath);
-			while (true)
+
+			int x = 0;
+			int y = 0;
+			int rad = 1;
+			int xIncr = 1;
+			int yIncr = 0;
+			opt.EOE_x = opt.EOE_originX;
+			opt.EOE_y = opt.EOE_originY;
+
+			if (opt.outputPath != "" && !opt.continueLast) File.WriteAllText(opt.outputPath, "");
+			if (opt.EOE) while (true)
+				{
+					DateTime startTime = DateTime.Now;
+					List<string> seedText = new List<string>() { $"{opt.currentSeed}" };
+					seedText.AddRange(args);
+					File.WriteAllLines("seed.txt", seedText);
+
+					MapGenerator gen = new MapGenerator();
+					if (opt.loggingLevel >= 2) Console.WriteLine($"Batch {i}: EOE local coords are ({x}, {y})");
+					gen.SearchEOE(opt);
+					
+					//bad spiral code
+					if (x >= rad && xIncr == 1)
+					{
+						yIncr = 1;
+						xIncr = 0;
+					}
+					else if (y >= rad && yIncr == 1)
+					{
+						xIncr = -1;
+						yIncr = 0;
+					}
+					else if (x <= -rad && xIncr == -1)
+					{
+						yIncr = -1;
+						xIncr = 0;
+					}
+					else if (y <= -rad && yIncr == -1)
+					{
+						xIncr = 1;
+						yIncr = 0;
+						rad++;
+					}
+					x += xIncr;
+					y += yIncr;
+					opt.EOE_x = opt.EOE_originX + 2 * opt.EOE_radius * x;
+					opt.EOE_y = opt.EOE_originY + 2 * opt.EOE_radius * y;
+					i++;
+
+					DateTime endTime = DateTime.Now;
+					TimeSpan fullExec = endTime - startTime;
+					if (opt.loggingLevel >= 1) Console.WriteLine($"Batch {i}: {fullExec.TotalSeconds} sec");
+			}
+			else while (true)
 			{
 				DateTime startTime = DateTime.Now; 
 				List<string> seedText = new List<string>() { $"{opt.currentSeed}" };
@@ -141,7 +276,7 @@ public class Program
 
 				if (opt.biome == "full")
 				{
-					List<string> biomes = STATICDATA.nameToColor.Keys.ToList();
+					List<string> biomes = BiomeData.nameToColor.Keys.ToList();
 					MapGenerator gen = new MapGenerator();
 					gen.ProvideMap(biomes, opt);
 				}
@@ -157,7 +292,7 @@ public class Program
 					MapGenerator gen = new MapGenerator();
 					gen.ProvideMap(biomes, opt);
 				}
-				else if(STATICDATA.nameToColor.Keys.Any(s => opt.biome.Contains(s)))
+				else if(BiomeData.nameToColor.Keys.Any(s => opt.biome.Contains(s)))
 				{
 					MapGenerator gen = new MapGenerator();
 					gen.ProvideMap(opt.biome.Split(' ', StringSplitOptions.TrimEntries).ToList(), opt);

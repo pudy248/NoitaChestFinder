@@ -3,7 +3,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 
 namespace GCFinder;
-public static class STATICDATA
+public static class BiomeData
 {
 	public static Dictionary<string, string> nameToColor = new()
 	{
@@ -37,6 +37,40 @@ public static class STATICDATA
 		{ "solid_wall_tower_9", "3d3e3f" },
 		{ "robobase", "4e5267" },
 	};
+
+	public static Dictionary<string, byte> biomeIndices = new()
+	{
+		{ "coalmine", 0 },
+		{ "coalmine_alt", 1 },
+		{ "excavationsite", 2 },
+		{ "fungicave", 3 },
+		{ "snowcave", 4 },
+		{ "snowcastle", 5 },
+		{ "rainforest", 6 },
+		{ "rainforest_open", 7 },
+		{ "rainforest_dark", 8 },
+		{ "vault", 9 },
+		{ "crypt", 10 },
+		{ "wandcave", 11 },
+		{ "vault_frozen", 12 },
+		//{ "the_end", "3c0f0a" },
+		//{ "the_sky", "d3e6f0" },
+		{ "wizardcave", 13 },
+		{ "sandcave", 14 },
+		//{ "pyramid", "967f11" },
+		{ "fungiforest", 15 },
+		{ "solid_wall_tower_1", 16 },
+		{ "solid_wall_tower_2", 17 },
+		{ "solid_wall_tower_3", 18 },
+		{ "solid_wall_tower_4", 19 },
+		{ "solid_wall_tower_5", 20 },
+		{ "solid_wall_tower_6", 21 },
+		{ "solid_wall_tower_7", 22 },
+		{ "solid_wall_tower_8", 23 },
+		{ "solid_wall_tower_9", 24 },
+		{ "robobase", 25 },
+	};
+
 	public static Dictionary<string, Image<Rgb24>> colorToWang = new()
 	{
 		{ "d57917", Image.Load<Rgb24>("wang_tiles/coalmine.png") },
@@ -103,6 +137,8 @@ public static class STATICDATA
 		{ "3d3e3f", new() { new() { x1 = 53, y1 = 23, w = 3, h = 1 } } },
 		{ "4e5267", new() { new() { x1 = 59, y1 = 29, w = 7, h = 9 } } },
 	};
+
+	public static Image<Rgb24> biomeMap = Image.Load<Rgb24>("biome_map.png");
 }
 
 public class MapArea
@@ -131,30 +167,44 @@ public class MapGenerator
 {
 	public ConfigState options;
 	
+	public void SearchEOE(ConfigState o)
+	{
+		options = o;
+		List<Chest> chests = Wang.GenerateEOEChests(o);
+		List<Chest> filteredChests = Wang.FilterEOEChestList(chests, o);
+		SortAndWriteResults(filteredChests);
+	}
+
 	public void ProvideMap(List<string> biomes, ConfigState o)
 	{
 		options = o;
 
-		List<Chest>[] allChests = new List<Chest>[o.batch];
-		for (int i = 0; i < options.batch; i++) allChests[i] = new();
-		foreach (string biome in biomes)
+		List<Chest>[,] allChests = new List<Chest>[biomes.Count, o.batch];
+		for(int i = 0; i < biomes.Count; i++)
 		{
+			string biome = biomes[i];
 			List<Chest>[] biomeChests = ProvideBlock(biome);
-			Parallel.For(0, options.batch, i =>
+			Parallel.For(0, options.batch, j =>
 			{
-				allChests[i].AddRange(biomeChests[i]);
+				allChests[i, j] = new();
+				allChests[i,j].AddRange(biomeChests[j]);
 			});
 		}
 
-		List<Chest> filteredChests = Wang.FilterChestList(allChests, o);
+		List<Chest> filteredChests = Wang.FilterChestList(allChests, o, biomes);
 		SortAndWriteResults(filteredChests);
 	}
 
 	public List<Chest>[] ProvideBlock(string biome)
 	{
-		string color = STATICDATA.nameToColor[biome];
-		List<MapArea> area = STATICDATA.colorToArea[color];
-		Image<Rgb24> wangMap = STATICDATA.colorToWang[color];
+		if(!BiomeData.nameToColor.ContainsKey(biome))
+		{
+			Console.WriteLine($"Invalid biome: {biome}");
+			return new List<Chest>[0];
+		}
+		string color = BiomeData.nameToColor[biome];
+		List<MapArea> area = BiomeData.colorToArea[color];
+		Image<Rgb24> wangMap = BiomeData.colorToWang[color];
 		List<Chest>[] aggregateRet = new List<Chest>[options.batch];
 		for (int i = 0; i < options.batch; i++) aggregateRet[i] = new();
 
@@ -177,6 +227,7 @@ public class MapGenerator
 				(uint)map_w,
 				(uint)map_h,
 				biome == "coalmine",
+				BiomeData.biomeIndices[biome],
 				x1,
 				y1,
 				options
@@ -191,17 +242,6 @@ public class MapGenerator
 
 	public void SortAndWriteResults(List<Chest> chests)
 	{
-		if (options.minX != -1)
-			chests = chests.Where(c => c.x >= options.minX).ToList();
-		if(options.maxX != -1)
-			chests = chests.Where(c => c.x < options.maxX).ToList();
-
-		if (options.minY != -1)
-			chests = chests.Where(c => c.y >= options.minY).ToList();
-		if(options.maxY != -1)
-			chests = chests.Where(c => c.y < options.maxY).ToList();
-
-		chests = chests.Where(c => c.seed < options.currentSeed + options.seedCount).ToList();
 		chests = chests.OrderBy(c => c.seed).ToList();
 
 		StreamWriter file = null;

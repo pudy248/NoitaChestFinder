@@ -2,7 +2,7 @@
   "profiles": {
     "GCFinder": {
       "commandName": "Project",
-      "commandLineArgs": "-z 5000 -l \"paha_silma paha_silma paha_silma\" -p 200",
+      "commandLineArgs": "-z 5000 -w \"capacity>26\" --wands -p 20 --biome crypt",
       "nativeDebugging": true
     }
   }
