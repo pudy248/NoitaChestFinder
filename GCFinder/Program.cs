@@ -81,24 +81,6 @@ public class ConfigState
 	[Option("max-y", Required = false, HelpText = "Maximum Y position.", Default = -1)]
 	public int maxY { get; set; }
 
-	[Option("EOE", Required = false, HelpText = "End of Everything mode. Ignores aggregate search. Only searches the given input seed.", Default = false)]
-	public bool EOE { get; set; }
-
-	[Option("EOE-originX", Required = false, HelpText = "Center of search in EOE mode.", Default = 0)]
-	public int EOE_originX { get; set; }
-
-	[Option("EOE-originY", Required = false, HelpText = "Center of search in EOE mode.", Default = 0)]
-	public int EOE_originY { get; set; }
-
-	[Option("EOE-radius", Required = false, HelpText = "Radius of search in EOE mode.", Default = 1000)]
-	public int EOE_radius { get; set; }
-
-	[Option("EOE-tinymode", Required = false, HelpText = "Check T10 wand drops instead of great chests. How you kill tiny on those pixels is your problem.", Default = false)]
-	public bool EOE_tinymode { get; set; }
-
-	public int EOE_x;
-	public int EOE_y;
-
 	public uint currentSeed;
 
 	public List<string> lootPositive = new();
@@ -117,6 +99,11 @@ public struct WandCheck
 		Leq,
 		Less
 	}
+
+	public Comparison comparison;
+	public string stat;
+	public float value;
+}
 
 	public Comparison comparison;
 	public string stat;
