@@ -14,6 +14,7 @@ public static class Wang
 		uint map_w,
 		uint map_h,
 		bool isCoalMine,
+		byte biomeIndex,
 		int worldX,
 		int worldY,
 		uint worldSeedStart,
@@ -26,25 +27,39 @@ public static class Wang
 		uint maxChestsPerWorld,
 		byte greedCurse,
 		byte checkItems,
-		byte expandSpells);
+		byte expandSpells,
+		byte checkWands);
+
+	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public static extern IntPtr search_eoe(
+		int originX,
+		int originY,
+		uint radius,
+		uint _worldSeed,
+		byte _loggingLevel,
+		uint _maxChestContents,
+		byte checkItems,
+		byte expandSpells,
+		byte tinyMode);
 
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public static unsafe extern void free_array(void* block);
 
 	static string DecodeItem(byte item, bool greed, uint seed, int x, int y)
 	{
+		//we have to expand spells here because the byte contains some data in the 2nd-7th bits
 		if((item & 0x80) > 0 && (item & 1) == 0)
 		{
 			byte rndCount = (byte)((item >> 1) & 0x3F);
 			NoitaRandom rnd = new NoitaRandom(seed);
 			rnd.SetRandomSeed(x, y);
 			for (int i = 0; i < rndCount; i++) rnd.Next();
-			SpellLists.Spell res = SpellLists.all_spells[0];
+			WandGen.Spell res = WandGen.all_spells[0];
 			bool valid = false;
 			while (!valid)
 			{
 				int itemno = rnd.Random(0, 392);
-				SpellLists.Spell spell = SpellLists.all_spells[itemno];
+				WandGen.Spell spell = WandGen.all_spells[itemno];
 				double sum = 0;
 				for (int i = 0; i < spell.spawn_probabilities.Length; i++) sum += spell.spawn_probabilities[i];
 				if (sum > 0)
@@ -154,6 +169,23 @@ public static class Wang
 			case 47:
 				return "broken_wand";
 
+			case 64:
+				return "wand_T10NS";
+			case 65:
+				return "wand_T1B";
+			case 66:
+				return "wand_T2B";
+			case 67:
+				return "wand_T3B";
+			case 68:
+				return "wand_T4B";
+			case 69:
+				return "wand_T5B";
+			case 70:
+				return "wand_T6B";
+			case 71:
+				return "unknown_wand";
+
 			case 253:
 				return "sampo";
 			case 255:
@@ -163,10 +195,17 @@ public static class Wang
 		}
 	}
 
-	//returns 1 if found, -1 if blacklisted, 0 if ignored
-	static int CheckString(List<string> positiveList, List<string> negativeList, string s)
+	//returns 1 if found, -1 if blacklisted, 0 if ignored, 2 if wand found
+	static int CheckString(List<string> positiveList, List<string> negativeList, List<WandCheck> wandChecks, string s)
 	{
 		if (negativeList.Contains("-" + s)) return -1;
+
+		if(s.StartsWith("wand") && !s.StartsWith("wand_T"))
+		{
+			bool passed = WandGen.WandChecksPassed(s, wandChecks);
+			if(passed) return 2;
+			else return 0;
+		}
 
 		bool found = false;
 		for(int i = 0; i < positiveList.Count; i++)
@@ -198,24 +237,39 @@ public static class Wang
 		return 0;
 	}
 
-	static void ExpandAndAdd(Chest retChest, string s, bool potionContents, bool spellContents)
+	static void ExpandAndAdd(Chest retChest, string s, ConfigState o)
 	{
 		if (s == "potions_pps")
 		{
-			ExpandAndAdd(retChest, "potion_normal", potionContents, spellContents);
-			ExpandAndAdd(retChest, "potion_normal", potionContents, spellContents);
-			ExpandAndAdd(retChest, "potion_secret", potionContents, spellContents);
+			ExpandAndAdd(retChest, "potion_normal", o);
+			ExpandAndAdd(retChest, "potion_normal", o);
+			ExpandAndAdd(retChest, "potion_secret", o);
 		}
 		else if (s == "potions_ssr")
 		{
-			ExpandAndAdd(retChest, "potion_secret", potionContents, spellContents);
-			ExpandAndAdd(retChest, "potion_secret", potionContents, spellContents);
-			ExpandAndAdd(retChest, "potion_random_material", potionContents, spellContents);
+			ExpandAndAdd(retChest, "potion_secret", o);
+			ExpandAndAdd(retChest, "potion_secret", o);
+			ExpandAndAdd(retChest, "potion_random_material", o);
 		}
-		else if (potionContents && new string[] { "potion_normal", "potion_secret", "potion_random_material" }.Contains(s))
+		else if (o.checkPotions && new string[] { "potion_normal", "potion_secret", "potion_random_material" }.Contains(s))
 		{
 			string contents = PotionLists.PotionContents(s, retChest.x, retChest.y, retChest.seed);
-			ExpandAndAdd(retChest, "potion_" + contents, potionContents, spellContents);
+			ExpandAndAdd(retChest, "potion_" + contents, o);
+		}
+		else if (o.checkWands && s.StartsWith("wand_T"))
+		{
+			bool nonshuffle = s.EndsWith("NS");
+			bool better = s.EndsWith("B");
+			int index = s.ToCharArray().ToList().IndexOf('T');
+			int tier;
+			if (s.Length > index + 2 && s.ToCharArray()[index + 2] == '0')
+				tier = 10;
+			else tier = int.Parse(s.ToCharArray()[index + 1].ToString());
+
+			WandGen.Wand w = WandGen.GetWandWithLevel(retChest.seed, retChest.x, retChest.y, tier, nonshuffle, better);
+			string[] strs = WandGen.ExpandWand(w);
+			foreach(string str in strs)
+				ExpandAndAdd(retChest, str.Trim(), o);
 		}
 		else
 		{
@@ -255,7 +309,7 @@ public static class Wang
 				{
 					byte b = contents[k];
 					string s = DecodeItem(b, o.greedCurse, retChest.seed, x, y);
-					ExpandAndAdd(retChest, s, o.potionContents, true);
+					ExpandAndAdd(retChest, s, o);
 				}
 
 				ret.Add(retChest);
@@ -268,74 +322,168 @@ public static class Wang
 		return retArr;
 	}
 
-	public static List<Chest> FilterChestList(List<Chest>[] lArr, ConfigState o)
+	public static unsafe List<Chest> ReadEOEChestArray(byte* ptr, ConfigState o)
+	{
+		Chest[] retArr = new Chest[4 * o.EOE_radius * o.EOE_radius];
+		Parallel.For(0, 4 * o.EOE_radius * o.EOE_radius, i =>
+		{
+			byte* c = ptr + i * (9 + o.maxChestContents);
+			int x = *(int*)c;
+			int y = *(int*)(c + 4);
+			byte contentsCount = *(c + 8);
+			byte* contents = c + 9;
+			if (o.loggingLevel >= 6) Console.WriteLine($"Chest {x} {y}: {contentsCount}");
+			List<string> searchList = new(o.lootPositive);
+			Chest retChest = new();
+			retChest.x = x;
+			retChest.y = y;
+			retChest.seed = o.currentSeed;
+			retChest.contents = new();
+
+			//Decode step
+			for (int k = 0; k < contentsCount; k++)
+			{
+				byte b = contents[k];
+				string s = DecodeItem(b, o.greedCurse, retChest.seed, x, y);
+				ExpandAndAdd(retChest, s, o);
+			}
+			retArr[i] = retChest;
+		});
+		return retArr.ToList();
+	}
+
+	public static List<Chest> FilterChestList(List<Chest>[,] listArray, ConfigState o, List<string> biomes)
 	{
 		List<Chest> ret = new List<Chest>();
-		Parallel.For(0, o.batch, i =>
+		Parallel.For(0, o.batch, j =>
 		{
-			List<Chest> seedChests = lArr[i];
-
-			List<string> aggregateSearch = new(o.lootPositive);
-			List<Chest> aggregateChests = new();
-			foreach (Chest c in seedChests)
+			for (int i = 0; i < biomes.Count; i++)
 			{
-				if (o.loggingLevel >= 6) Console.WriteLine($"Chest {c.x} {c.y}: {c.contents.Count}");
-				List<string> searchList = new(o.lootPositive);
+				List<Chest> seedChests = listArray[i, j];
 
-				//Validate step
-				bool failed = false;
-				bool aggregatePassed = false;
-				for (int k = 0; k < c.contents.Count; k++)
+
+				List<string> aggregateSearch = new(o.lootPositive);
+				List<Chest> aggregateChests = new();
+				foreach (Chest c in seedChests)
 				{
-					string s = c.contents[k];
-					if (o.loggingLevel >= 6) Console.WriteLine($"  {s}");
+					if (o.loggingLevel >= 6) Console.WriteLine($"Chest {c.x} {c.y}: {c.contents.Count}");
+					List<string> searchList = new(o.lootPositive);
 
-					int checkResult = CheckString(searchList, o.lootNegative, s);
-					int aggregateResult = CheckString(aggregateSearch, o.lootNegative, s);
+					//check if valid spawn
+					if (o.minX != -1 && c.x >= o.minX)
+						continue;
+					if (o.maxX != -1 && c.x < o.maxX)
+						continue;
+					if (o.minY != -1 && c.y >= o.minY)
+						continue;
+					if (o.maxY != -1 && c.y < o.maxY)
+						continue;
 
-					if (o.loggingLevel >= 6) Console.WriteLine($"     Result: {checkResult}, {searchList.Count}");
-					if (!o.aggregate && checkResult == -1)
+					(int, int) chunkCoords = Wang.GetChunkPos(c.x, c.y);
+					(int, int) pwChunkCoords = ((chunkCoords.Item1 % 70 + 70) % 70, (chunkCoords.Item2 % 48 + 48) % 48);
+					string color = Helpers.ToHex(BiomeData.biomeMap[pwChunkCoords.Item1, pwChunkCoords.Item2]);
+					if (color != BiomeData.nameToColor[biomes[i]])
 					{
-						failed = true;
-						break;
+						continue;
 					}
-					if(o.aggregate && aggregateResult == 1)
+
+
+					//check contents
+					bool failed = false;
+					bool aggregatePassed = false;
+					bool wandPassed = false;
+					for (int k = 0; k < c.contents.Count; k++)
 					{
-						aggregatePassed = true;
+						string s = c.contents[k];
+						if (o.loggingLevel >= 6) Console.WriteLine($"  {s}");
+
+						int checkResult = CheckString(searchList, o.lootNegative, o.wandChecks, s);
+						int aggregateResult = CheckString(aggregateSearch, o.lootNegative, o.wandChecks, s);
+
+						if (o.loggingLevel >= 6) Console.WriteLine($"     Result: {checkResult}, {searchList.Count}");
+						if (!o.aggregate && checkResult == -1)
+						{
+							failed = true;
+							break;
+						}
+						if (o.aggregate && aggregateResult == 1)
+						{
+							aggregatePassed = true;
+						}
+						if (checkResult == 2) wandPassed = true;
+					}
+
+					if (!failed && (o.wandAndLoot && wandPassed && searchList.Count == 0 || !o.wandAndLoot && (!o.aggregate && searchList.Count == 0 || wandPassed)))
+					{
+						lock (ret)
+						{
+							ret.Add(c);
+						}
+					}
+					if (o.aggregate && aggregatePassed)
+					{
+						aggregateChests.Add(c);
 					}
 				}
-				if (!o.aggregate && searchList.Count == 0 && !failed)
+				if (o.aggregate && aggregateSearch.Count == 0)
 				{
 					lock (ret)
 					{
-						ret.Add(c);
+						ret.AddRange(aggregateChests);
 					}
-				}
-				if(o.aggregate && aggregatePassed)
-				{
-					aggregateChests.Add(c);
-				}
-			}
-			if(o.aggregate && aggregateSearch.Count == 0)
-			{
-				lock (ret)
-				{
-					ret.AddRange(aggregateChests);
 				}
 			}
 		});
 		return ret;
 	}
 
-	public static unsafe List<Chest>[] GenerateMap(Image<Rgb24> wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, int worldX, int worldY, ConfigState o)
+	public static List<Chest> FilterEOEChestList(List<Chest> list, ConfigState o)
+	{
+		List<Chest> ret = new();
+		Parallel.For(0, 4 * o.EOE_radius * o.EOE_radius, i =>
+		{
+			Chest c = list[(int)i];
+			if (o.loggingLevel >= 6) Console.WriteLine($"Chest {c.x} {c.y}: {c.contents.Count}");
+			List<string> searchList = new(o.lootPositive);
+
+			//Validate step
+			bool failed = false;
+			bool wandPassed = false;
+			for (int k = 0; k < c.contents.Count; k++)
+			{
+				string s = c.contents[k];
+				if (o.loggingLevel >= 6) Console.WriteLine($"  {s}");
+
+				int checkResult = CheckString(searchList, o.lootNegative, o.wandChecks, s);
+
+				if (o.loggingLevel >= 6) Console.WriteLine($"     Result: {checkResult}, {searchList.Count}");
+				if (checkResult == -1)
+				{
+					failed = true;
+					break;
+				}
+				if (checkResult == 2) wandPassed = true;
+			}
+			if (!failed && (searchList.Count == 0 || wandPassed))
+			{
+				lock (ret)
+				{
+					ret.Add(c);
+				}
+			}
+		});
+		return ret;
+	}
+	
+	public static unsafe List<Chest>[] GenerateMap(Image<Rgb24> wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, byte biomeIndex, int worldX, int worldY, ConfigState o)
 	{
 		byte[] wangData = Helpers.ImageToByteArray(wang);
 		GCHandle pinnedTileData = GCHandle.Alloc(wangData, GCHandleType.Pinned);
 
 		DateTime lStartTime = DateTime.Now;
-		IntPtr pointer = generate_block(wangData, tiles_w, tiles_h, map_w, map_h, isCoalMine, worldX, worldY, o.currentSeed + o.ngPlus, 
+		IntPtr pointer = generate_block(wangData, tiles_w, tiles_h, map_w, map_h, isCoalMine, biomeIndex, worldX, worldY, o.currentSeed + o.ngPlus, 
 			o.batch, o.maxTries, o.pwCount, (byte)o.ngPlus, (byte)o.loggingLevel, o.maxChestContents, o.maxChestsPerBiome, 
-			(byte)(o.greedCurse ? 1 : 0), (byte)(o.checkItems ? 1 : 0), (byte)(o.spellContents ? 1 : 0));
+			(byte)(o.greedCurse ? 1 : 0), (byte)(o.checkItems ? 1 : 0), (byte)(o.checkSpells ? 1 : 0), (byte)(o.checkWands ? 1 : 1));
 
 		DateTime lEndTime = DateTime.Now;
 		TimeSpan lFullExec = lEndTime - lStartTime;
@@ -358,14 +506,30 @@ public static class Wang
 		return ret;
 	}
 
+	public static unsafe List<Chest> GenerateEOEChests(ConfigState o)
+	{
+		DateTime lStartTime = DateTime.Now;
+		IntPtr pointer = search_eoe(o.EOE_x, o.EOE_y, (uint)o.EOE_radius, o.currentSeed, (byte)o.loggingLevel, o.maxChestContents, (byte)(o.checkItems ? 1 : 0), (byte)(o.checkSpells ? 1 : 0), (byte)(o.EOE_tinymode ? 1 : 0));
+		byte* retPointer = (byte*)pointer.ToPointer();
+		List<Chest> ret = ReadEOEChestArray(retPointer, o);
+		free_array(retPointer);
+		return ret;
+	}
+
 	public static int GetWidthFromPix(int a, int b)
 	{
 		return ((b * 512) / 10 - (a * 512) / 10);
 	}
-
-	public static int GetGlobalPos(int a, int b, int c)
+	public static (int, int) GetChunkPos(int gx, int gy)
 	{
-		return ((b * 512) / 10 - (a * 512) / 10) * 10 + c;
+		int x = (int)Math.Round(((gx + 15) / 512.0) + 35);
+		int y = (int)Math.Round(((gy + 3) / 512.0) + 14);
+		return (x, y);
 	}
-
+	public static (int, int) GetGlobalPos(int x, int y)
+	{
+		int gx = (int)(((x - 35) * 512) / 10) * 10 - 15;
+		int gy = (int)(((y - 14) * 512) / 10) * 10 - 3;
+		return (gx, gy);
+	}
 }

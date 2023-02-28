@@ -246,6 +246,11 @@ public class NoitaRandom
 		return min + d;
 	}
 
+	public int RandomDistribution(float min, float max, float mean, float sharpness)
+	{
+		return RandomDistribution((int)min, (int)max, (int)mean, (int)sharpness);
+	}
+
 	public float RandomDistributionf(float min, float max, float mean, float sharpness)
 	{
 		if (sharpness == 0.0)
