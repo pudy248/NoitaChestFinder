@@ -1,5 +1,5 @@
 # pudy248's Chest Loot Searcher
-DISCLAIMER: There are a few bugs in the Wang tiler worldgen, which makes this program only correct ~50% of the time. If a seed doesn't have a chest at the reported position, try another seed. Sometimes it can take a few attempts.
+DISCLAIMER: There are a few bugs in the Wang tiler worldgen, which makes this program only correct 50-90% of the time, depending on the biome. If a seed doesn't have an item at the reported position, try another seed. Sometimes it can take a few attempts.
 
 ## Installation
 Simply download and extract the latest release and open a command prompt in the folder. Make sure CUDA and .NET are installed on your system. Then, in a command prompt, type in `GCFinder` (or `./GCFinder` on Linux) followed by your desired options.
@@ -56,8 +56,24 @@ The filter string functionality is relatively versatile. Here are all of its fea
 
 - Search for exact matches by including '-' on its own in a query. Ex. `-l "wand_T4NS -"` will return chests containing a tier 4 non-shuffle wand and no additional items.
 
+## Wands
+Wand search can be enabled with `--wands`. This includes wand altars in the search scope automatically. Filtering of chests with wands is slightly different than looking for straight items, depending on the objective.
+
+- Wands themselves are represented as (somewhat difficult to read) strings in the output. Their format is `wand_[capacity]_[multicast]_[cast delay (sec)]_[reload (sec)]_[max mana]_[mana regen]_[spread (deg)]_[speed multiplier]_[shuffle]`. This way, every stat of the wand can be seen at a glance. **Don't search for wands with certain stats using `-l`! There is a separate option for wand stat filtering.**
+
+- Wand spells are automatically included separately in the chest, and can be searched for just like normal spell card drops from chests. Always casts are prefixed with `ac_`, so a query like `-l "ac_spell_regeneration_field" --wands` can locate Always Cast circles of vigor. For non-always casts, the program doesn't differentiate between spells on a wand and random card drops, but searching without `--wands` or without `--spells` will allow only one of them to be generated if desired.
+
+- Wand stats can be filtered with `-w`. This accepts a series of space-separated filters for stats, in the form `[stat][operator][number]`. For instance, `-w "capacity>26 multicast=1 shuffle=0"` filters for non-shuffle wands with more than 26 slots and no multicast. Allowed operators are >, >=, =, <=, and <. Allowed stats are `capacity`, `multicast`, `delay`, `reload`, `mana`, `regen`, `spread`, `speed`, and `shuffle`. Shuffle is 1 if the wand is a shuffle wand, 0 otherwise. The other stats are self-explanatory.
+
+- By default, wand stat search returns all chests/wands that have a wand passing the wand filter **OR** loot passing the loot filter. This can be configured to only return chests/wands with both the requisite stats and the searched loot with `--wand-and-loot`. For instance, searching for a wand with specific stats and a desired always cast should be done with `-w "delay<0.20 mana>1000" -l "ac_mana_reduce" --wands --wand-and-loot`.
+
+## End of Everything / TinyMode
+EOE mode contains a few important differences from normal search. First, **only the starting seed is searched!** Batch size and seed count are ignored with this option. The search checks square blocks in a spiral from the defined center. `--EOE-radius` is used in place of batch size to control the size of these squares, and does roughly the same thing as batch size. The search will spiral outwards indefinitely on a given seed, until stopped. Otherwise, the chest search syntax is identical to normal, except that `--pedestals` does nothing.
+
+TinyMode is identical to EOE mode, except instead of generating the loot of a greater treasure chest on every pixel, it generates a single tier 10 non-shuffle wand. Killing Tiny with a certain offset relative to TinyMode results will drop the searched wand. The feasibility of killing Tiny on specific pixels is debatable, but if you manage to do it you can get arbitrarily powerful tier 10 wands.
+
 ## Other biomes
-Currently only the mines are fully supported. Every main path biome should work with similar accuracy, but side biomes are by no means guaranteed to function at as high of an accuracy or even at all. All biomes use their LUA names.
+Currently only the mines are fully supported. Every main path biome should work with similar accuracy, but side biomes are by no means guaranteed to function at as high of an accuracy or even at all. All biomes use their LUA names. Also supported are "mainpath", "tower", and "full", whose scopes are hopefully obvious.
 
 ## Other options
 - Batch size controls how many seeds are computed at once. You should adjust this number to use close to as much VRAM as you have available, since larger batches run significantly faster per-seed.
