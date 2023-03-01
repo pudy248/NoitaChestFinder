@@ -52,7 +52,7 @@ public static class Wang
 		{
 			byte rndCount = (byte)((item >> 1) & 0x3F);
 			NoitaRandom rnd = new NoitaRandom(seed);
-			rnd.SetRandomSeed(x, y);
+			rnd.SetRandomSeed(x+509.7, y+683.1);
 			for (int i = 0; i < rndCount; i++) rnd.Next();
 			WandGen.Spell res = WandGen.all_spells[0];
 			bool valid = false;

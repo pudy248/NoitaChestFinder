@@ -1,6 +1,5 @@
 ﻿using GCFinder;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using CommandLine;
 using System.Diagnostics;
 public class ConfigState
