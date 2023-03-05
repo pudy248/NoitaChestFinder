@@ -20,7 +20,7 @@ public static class WandGen
 		public bool isBetter;
 
 		public float cost;
-		public int capacity;
+		public float capacity;
 		public int multicast;
 		public int mana;
 		public int regen;
@@ -57,7 +57,7 @@ public static class WandGen
 	{
 		List<string> strs = new List<string>()
 		{
-			$"wand_{w.capacity}_{w.multicast}_{(w.delay / 60f).ToString("F2")}_{(w.reload / 60f).ToString("F2")}_{w.mana}_{w.regen}_{w.spread}_{w.speed.ToString("F3")}_{(w.shuffle ? "shuffle" : "nonshuffle")}"
+			$"wand_{w.capacity.ToString("F0")}_{w.multicast}_{(w.delay / 60f).ToString("F2")}_{(w.reload / 60f).ToString("F2")}_{w.mana}_{w.regen}_{w.spread}_{w.speed.ToString("F3")}_{(w.shuffle ? "shuffle" : "nonshuffle")}"
 		};
 		if (w.alwaysCast.HasValue) strs.Add($"ac_spell_{w.alwaysCast.Value.id.ToLower()}");
 		strs.AddRange(w.spells.Select(x => "spell_" + x.id.ToLower()));
@@ -273,11 +273,12 @@ public static class WandGen
 		if (gun.cost > 5 && random.Random(0, 1000) < 995)
 		{
 			if (gun.shuffle)
-				gun.capacity += (int)Math.Round(gun.cost / 5);
+				gun.capacity += (gun.cost / 5f);
 			else
-				gun.capacity += (int)Math.Round(gun.cost / 10);
+				gun.capacity += (gun.cost / 10f);
 			gun.cost = 0;
 		}
+		gun.capacity = (float)Math.Floor(gun.capacity - 0.1f);
 
 		if (force_unshuffle) gun.shuffle = false;
 		if(random.Random(0, 10000) <= 9999)
@@ -298,10 +299,10 @@ public static class WandGen
 
 			if(random.Random(0, 100) < 50)
 			{
-				int new_multicast = gun.capacity;
+				int new_multicast = (int)gun.capacity;
 				for(int i = 1; i < 6; i++)
 				{
-					int temp = random.Random(gun.multicast, gun.capacity);
+					int temp = random.Random(gun.multicast, (int)gun.capacity);
 					if(temp < new_multicast)
 						new_multicast = temp;
 				}
@@ -309,7 +310,7 @@ public static class WandGen
 			}
 		}
 
-		gun.multicast = Math.Clamp(gun.multicast, 1, gun.capacity);
+		gun.multicast = Math.Clamp(gun.multicast, 1, (int)gun.capacity);
 
 		return gun;
 	}
@@ -376,11 +377,12 @@ public static class WandGen
 		if (gun.cost > 5 && random.Random(0, 1000) < 995)
 		{
 			if (gun.shuffle)
-				gun.capacity += (int)Math.Round(gun.cost / 5);
+				gun.capacity += (gun.cost / 5f);
 			else
-				gun.capacity += (int)Math.Round(gun.cost / 10);
+				gun.capacity += (gun.cost / 10f);
 			gun.cost = 0;
 		}
+		gun.capacity = (float)Math.Floor(gun.capacity - 0.1f);
 
 		if (random.Random(0, 10000) <= 9999)
 		{
@@ -400,10 +402,10 @@ public static class WandGen
 
 			if (random.Random(0, 100) < 50)
 			{
-				int new_multicast = gun.capacity;
+				int new_multicast = (int)gun.capacity;
 				for (int i = 1; i < 6; i++)
 				{
-					int temp = random.Random(gun.multicast, gun.capacity);
+					int temp = random.Random(gun.multicast, (int)gun.capacity);
 					if (temp < new_multicast)
 						new_multicast = temp;
 				}
@@ -411,7 +413,7 @@ public static class WandGen
 			}
 		}
 
-		gun.multicast = Math.Clamp(gun.multicast, 1, gun.capacity);
+		gun.multicast = Math.Clamp(gun.multicast, 1, (int)gun.capacity);
 
 		return gun;
 	}
@@ -427,7 +429,7 @@ public static class WandGen
 
 		int orig_level = _level;
 		int level = _level - 1;
-		int capacity = gun.capacity;
+		int capacity = (int)gun.capacity;
 		int multicast = gun.multicast;
 		int cardCount = random.Random(1, 3);
 		Spell bulletCard = GetRandomActionWithType(seed, x, y, level, ACTION_TYPE.PROJECTILE, 0);
@@ -551,7 +553,7 @@ public static class WandGen
 
 		int orig_level = _level;
 		int level = _level - 1;
-		int capacity = gun.capacity;
+		int capacity = (int)gun.capacity;
 		int multicast = gun.multicast;
 		int cardCount = random.Random(1, 3);
 		Spell bulletCard = GetRandomActionWithType(seed, x, y, level, ACTION_TYPE.PROJECTILE, 0);
@@ -682,7 +684,7 @@ public static class WandGen
 
 				max = Math.Clamp(max, 1, 20);
 
-				gun.capacity = (int)Math.Round(Math.Clamp(random.RandomDistribution(prob.min, prob.max, prob.mean, prob.sharpness), min, max));
+				gun.capacity = (Math.Clamp(random.RandomDistribution(prob.min, prob.max, prob.mean, prob.sharpness), min, max));
 				gun.cost -= (gun.capacity - 6) * 5;
 				//Console.WriteLine("capacity");
 				//Console.WriteLine(gun.cost);
