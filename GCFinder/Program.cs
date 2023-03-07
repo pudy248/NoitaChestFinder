@@ -53,6 +53,9 @@ public class ConfigState
 	[Option("wand-and-loot", Required = false, HelpText = "Display only chests which have a wand that passes the wand filter AND loot that passes the loot filter.", Default = false)]
 	public bool wandAndLoot { get; set; }
 
+	[Option("starting-flask", Required = false, HelpText = "Starting flask material filter.", Default = "")]
+	public string startingFlask { get; set; }
+
 	[Option("output-path", Required = false, HelpText = "File to write outputs to. Leave blank to only log to the console.", Default = "out.txt")]
 	public string outputPath { get; set; }
 

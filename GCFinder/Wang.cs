@@ -379,6 +379,9 @@ public static class Wang
 					if (o.maxY != -1 && c.y > o.maxY)
 						continue;
 
+					if (o.startingFlask != "" && PotionLists.StartingFlask(c.seed) != o.startingFlask)
+						continue;
+
 					(int, int) chunkCoords = Wang.GetChunkPos(c.x, c.y);
 					(int, int) pwChunkCoords = ((chunkCoords.Item1 % 70 + 70) % 70, (chunkCoords.Item2 % 48 + 48) % 48);
 					string color = Helpers.ToHex(BiomeData.biomeMap[pwChunkCoords.Item1, pwChunkCoords.Item2]);

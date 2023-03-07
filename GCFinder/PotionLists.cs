@@ -38,7 +38,7 @@ public class PotionLists
 		"magic_liquid_hp_regeneration_unstable",
 		"blood_worm",
 		"gold",
-		"creepy_liquid",
+		"snow",
 		"glowshroom",
 		"bush_seed",
 		"cement",
@@ -263,7 +263,76 @@ public class PotionLists
 				ret = random_from_array(rnd, materials_sands);
 		}
 		else ret = "ERR";
-		//Console.WriteLine($"PotionContents {seed} ({x}, {y}): {potionType} => {ret}");
+		Console.WriteLine($"PotionContents {seed} ({x}, {y}): {potionType} => {ret}");
 		return ret;
+	}
+
+	public static string StartingFlask(uint seed)
+	{
+		NoitaRandom rnd = new NoitaRandom(seed);
+		rnd.SetRandomSeed(-4.5, -4);
+
+		string material = "null";
+
+		int res = rnd.Random(1, 100);
+
+		if (res <= 65)
+		{
+			res = rnd.Random(1, 100);
+			// I want this to look better, hence the false
+			if (false)
+			{
+			}
+			else if (res <= 10)
+			{
+				material = "mud";
+			}
+			else if (res <= 20)
+			{
+				material = "water_swamp";
+			}
+			else if (res <= 30)
+			{
+				material = "water_salt";
+			}
+			else if (res <= 40)
+			{
+				material = "swamp";
+			}
+			else if (res <= 50)
+			{
+				material = "snow";
+			}
+			else
+			{
+				material = "water";
+			}
+		}
+		else if (res <= 70)
+		{
+			material = "blood";
+		}
+		else if (res <= 99)
+		{
+			res = rnd.Random(0, 100);
+			string[] magic = new string[] {
+			  "acid",
+			  "magic_liquid_polymorph",
+			  "magic_liquid_random_polymorph",
+			  "magic_liquid_berserk",
+			  "magic_liquid_charm",
+			  "magic_liquid_movement_faster"
+			};
+			material = magic[rnd.Random(0, 5)];
+		}
+		else
+		{
+			res = rnd.Random(0, 100000);
+			if (res == 666) material = "urine";
+			else if (res == 79) material = "gold";
+			else if (rnd.Random(0, 1) == 0) material = "slime";
+			else material = "gunpowder_unstable";
+		}
+		return material;
 	}
 }

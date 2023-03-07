@@ -129,7 +129,7 @@ public static class WandGen
 		return !anyFailed;
 	}
 
-	public static Wand GetWandWithLevel(uint seed, int x, int y, int level, bool nonshuffle, bool better)
+	public static Wand GetWandWithLevel(uint seed, double x, double y, int level, bool nonshuffle, bool better)
 	{
 		if(nonshuffle)
 			switch(level)
@@ -184,7 +184,7 @@ public static class WandGen
 		return GetWand(seed, x, y, 10, 1, false);
 	}
 
-	public static Wand GetWand(uint seed, int x, int y, int cost, int level, bool force_unshuffle)
+	public static Wand GetWand(uint seed, double x, double y, int cost, int level, bool force_unshuffle)
 	{
 		NoitaRandom random = new(seed);
 		random.SetRandomSeed(x, y);
@@ -194,7 +194,7 @@ public static class WandGen
 		return wand;
 	}
 
-	public static Wand GetWandBetter(uint seed, int x, int y, int cost, int level)
+	public static Wand GetWandBetter(uint seed, double x, double y, int cost, int level)
 	{
 		NoitaRandom random = new(seed);
 		random.SetRandomSeed(x, y);
@@ -418,7 +418,7 @@ public static class WandGen
 		return gun;
 	}
 
-	static void AddRandomCards(ref Wand gun, uint seed, int x, int y, int _level, ref NoitaRandom random)
+	static void AddRandomCards(ref Wand gun, uint seed, double x, double y, int _level, ref NoitaRandom random)
 	{
 		gun.spells = new();
 
@@ -542,7 +542,7 @@ public static class WandGen
 		}
 	}
 
-	static void AddRandomCardsBetter(ref Wand gun, uint seed, int x, int y, int _level, ref NoitaRandom random)
+	static void AddRandomCardsBetter(ref Wand gun, uint seed, double x, double y, int _level, ref NoitaRandom random)
 	{
 		gun.spells = new();
 
@@ -746,7 +746,7 @@ public static class WandGen
 		return new();
 	}
 
-	static Spell GetRandomActionWithType(uint seed, float x, float y, int level, ACTION_TYPE type, int offset)
+	static Spell GetRandomActionWithType(uint seed, double x, double y, int level, ACTION_TYPE type, int offset)
 	{
 		NoitaRandom random = new NoitaRandom((uint)(seed + offset));
 		random.SetRandomSeed(x, y);
