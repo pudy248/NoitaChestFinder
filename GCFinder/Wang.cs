@@ -9,6 +9,7 @@ public static class Wang
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public static extern IntPtr generate_block(
 		byte[] tiles_data,
+		uint[] seeds,
 		uint tiles_w,
 		uint tiles_h,
 		uint map_w,
@@ -45,7 +46,7 @@ public static class Wang
 	[DllImport("WangTilerCUDA.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public static unsafe extern void free_array(void* block);
 
-	static string DecodeItem(byte item, bool greed, uint seed, int x, int y)
+	public static string DecodeItem(byte item, bool greed, uint seed, int x, int y)
 	{
 		//we have to expand spells here because the byte contains some data in the 2nd-7th bits
 		if((item & 0x80) > 0 && (item & 1) == 0)
@@ -196,7 +197,7 @@ public static class Wang
 	}
 
 	//returns 1 if found, -1 if blacklisted, 0 if ignored, 2 if wand found
-	static int CheckString(List<string> positiveList, List<string> negativeList, List<WandCheck> wandChecks, string s)
+	public static int CheckString(List<string> positiveList, List<string> negativeList, List<WandCheck> wandChecks, string s)
 	{
 		if (negativeList.Contains("-" + s)) return -1;
 
@@ -237,7 +238,7 @@ public static class Wang
 		return 0;
 	}
 
-	static void ExpandAndAdd(Chest retChest, string s, ConfigState o)
+	public static void ExpandAndAdd(Chest retChest, string s, ConfigState o)
 	{
 		if (s == "potions_pps")
 		{
@@ -277,7 +278,7 @@ public static class Wang
 		}
 	}
 
-	public static unsafe List<Chest>[] ReadChestArray(byte* ptr, ConfigState o)
+	public static unsafe List<Chest>[] ReadChestArray(byte* ptr, uint[] seeds, ConfigState o)
 	{
 		List<Chest>[] retArr = new List<Chest>[o.batch];
 		Parallel.For(0, o.batch, i =>
@@ -297,11 +298,10 @@ public static class Wang
 				byte contentsCount = *(c + 8);
 				byte* contents = c + 9;
 				if (o.loggingLevel >= 6) Console.WriteLine($"Chest {x} {y}: {contentsCount}");
-				List<string> searchList = new(o.lootPositive);
 				Chest retChest = new();
 				retChest.x = x;
 				retChest.y = y;
-				retChest.seed = (uint)(o.currentSeed + i);
+				retChest.seed = seeds[i];
 				retChest.contents = new();
 
 				//Decode step
@@ -478,13 +478,14 @@ public static class Wang
 		return ret;
 	}
 	
-	public static unsafe List<Chest>[] GenerateMap(Image<Rgb24> wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, byte biomeIndex, int worldX, int worldY, ConfigState o)
+	public static unsafe List<Chest>[] GenerateMap(Image<Rgb24> wang, uint tiles_w, uint tiles_h, uint map_w, uint map_h, bool isCoalMine, byte biomeIndex, int worldX, int worldY, ConfigState o, uint[] seeds)
 	{
 		byte[] wangData = Helpers.ImageToByteArray(wang);
 		GCHandle pinnedTileData = GCHandle.Alloc(wangData, GCHandleType.Pinned);
+		GCHandle pinnedSeeds = GCHandle.Alloc(seeds, GCHandleType.Pinned);
 
 		DateTime lStartTime = DateTime.Now;
-		IntPtr pointer = generate_block(wangData, tiles_w, tiles_h, map_w, map_h, isCoalMine, biomeIndex, worldX, worldY, o.currentSeed + o.ngPlus, 
+		IntPtr pointer = generate_block(wangData, seeds, tiles_w, tiles_h, map_w, map_h, isCoalMine, biomeIndex, worldX, worldY, o.currentSeed + o.ngPlus, 
 			o.batch, o.maxTries, o.pwCount, (byte)o.ngPlus, (byte)o.loggingLevel, o.maxChestContents, o.maxChestsPerBiome, 
 			(byte)(o.greedCurse ? 1 : 0), (byte)(o.checkItems ? 1 : 0), (byte)(o.checkSpells ? 1 : 0), (byte)(o.checkWands ? 1 : 1));
 
@@ -493,6 +494,7 @@ public static class Wang
 		if (o.loggingLevel >= 2) Console.WriteLine($"DLL time: {lFullExec.TotalSeconds} sec");
 
 		pinnedTileData.Free();
+		pinnedSeeds.Free();
 		void* retPointers = pointer.ToPointer();
 		byte* chestPtr = *(byte**)retPointers;
 		byte* imgPtr = *((byte**)retPointers + 1);
@@ -503,7 +505,7 @@ public static class Wang
 			i.Save($"wang_outputs/{o.currentSeed}.png");
 		}
 
-		List<Chest>[] ret = ReadChestArray(chestPtr, o);
+		List<Chest>[] ret = ReadChestArray(chestPtr, seeds, o);
 		free_array(chestPtr);
 		free_array(imgPtr);
 		return ret;

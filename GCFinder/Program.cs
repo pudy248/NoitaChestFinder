@@ -98,6 +98,9 @@ public class ConfigState
 	[Option("EOE-tinymode", Required = false, HelpText = "Check T10 wand drops instead of great chests. How you kill tiny on those pixels is your problem.", Default = false)]
 	public bool EOE_tinymode { get; set; }
 
+	[Option("upwarp-precheck", Required = false, HelpText = "Check the contents of known chest upwarp positions in advance to weed out bad seeds before doing worldgen.", Default = false)]
+	public bool upwarp_precheck { get; set; }
+
 	public int EOE_x;
 	public int EOE_y;
 
@@ -280,24 +283,24 @@ public class Program
 				{
 					List<string> biomes = BiomeData.nameToColor.Keys.ToList();
 					MapGenerator gen = new MapGenerator();
-					gen.ProvideMap(biomes, opt);
+					opt.currentSeed = gen.ProvideMap(biomes, opt) - opt.batch;
 				}
 				else if (opt.biome == "mainpath")
 				{
 					List<string> biomes = new List<String>() { "coalmine", "excavationsite", "snowcave", "snowcastle", "rainforest", "rainforest_open", "vault", "crypt" };
 					MapGenerator gen = new MapGenerator();
-					gen.ProvideMap(biomes, opt);
-				}
+						opt.currentSeed = gen.ProvideMap(biomes, opt) - opt.batch;
+					}
 				else if(opt.biome == "tower")
 				{
 					List<string> biomes = new List<String>() { "solid_wall_tower_1", "solid_wall_tower_2", "solid_wall_tower_3", "solid_wall_tower_4", "solid_wall_tower_5", "solid_wall_tower_6", "solid_wall_tower_7", "solid_wall_tower_8" };
 					MapGenerator gen = new MapGenerator();
-					gen.ProvideMap(biomes, opt);
-				}
+						opt.currentSeed = gen.ProvideMap(biomes, opt) - opt.batch;
+					}
 				else if(BiomeData.nameToColor.Keys.Any(s => opt.biome.Contains(s)))
 				{
 					MapGenerator gen = new MapGenerator();
-					gen.ProvideMap(opt.biome.Split(' ', StringSplitOptions.TrimEntries).ToList(), opt);
+					opt.currentSeed = gen.ProvideMap(opt.biome.Split(' ', StringSplitOptions.TrimEntries).ToList(), opt) - opt.batch;
 
 				}
 

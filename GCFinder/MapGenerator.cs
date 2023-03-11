@@ -175,15 +175,55 @@ public class MapGenerator
 		SortAndWriteResults(filteredChests);
 	}
 
-	public void ProvideMap(List<string> biomes, ConfigState o)
+	public uint ProvideMap(List<string> biomes, ConfigState o)
 	{
 		options = o;
+
+		uint[] seeds = new uint[options.batch];
+
+		if (options.upwarp_precheck)
+		{
+			DateTime precheckStartTime = DateTime.Now;
+			uint currentSeed = options.currentSeed;
+			int idx = 0;
+			int threadCount = Environment.ProcessorCount;
+			int[] offset = new int[threadCount];
+			Parallel.For(0, threadCount - 1, i =>
+			{
+				while (!(idx >= o.batch || offset[i] + currentSeed > int.MaxValue))
+				{
+					if (ChestPosPrechecker.PrecheckSeed((uint)(currentSeed + i + offset[i]), options))
+						lock (seeds)
+							seeds[idx++] = (uint)(currentSeed + i + offset[i]);
+					offset[i] += threadCount;
+				}
+			});
+			int lineCount = 20;
+			if (options.loggingLevel >= 4)
+			{
+				for (int y = 0; y < options.batch; y += lineCount)
+				{
+					for (int x = 0; x < lineCount; x++)
+					{
+						Console.Write($"{seeds[x + y]} ");
+					}
+					Console.WriteLine();
+				}
+			}
+			DateTime precheckEndTime = DateTime.Now;
+			TimeSpan precheckFullExec = precheckEndTime - precheckStartTime;
+			if (options.loggingLevel >= 2) Console.WriteLine($"Precheck {options.batch} seeds: {precheckFullExec.TotalSeconds} sec");
+		}
+		else
+		{
+			for (uint i = 0; i < options.batch; i++) seeds[i] = options.currentSeed + i;
+		}
 
 		List<Chest>[,] allChests = new List<Chest>[biomes.Count, o.batch];
 		for(int i = 0; i < biomes.Count; i++)
 		{
 			string biome = biomes[i];
-			List<Chest>[] biomeChests = ProvideBlock(biome);
+			List<Chest>[] biomeChests = ProvideBlock(biome, seeds);
 			Parallel.For(0, options.batch, j =>
 			{
 				allChests[i, j] = new();
@@ -193,15 +233,17 @@ public class MapGenerator
 
 		List<Chest> filteredChests = Wang.FilterChestList(allChests, o, biomes);
 		SortAndWriteResults(filteredChests);
+		return seeds[seeds.Length - 1] + 1;
 	}
 
-	public List<Chest>[] ProvideBlock(string biome)
+	public List<Chest>[] ProvideBlock(string biome, uint[] seeds)
 	{
 		if(!BiomeData.nameToColor.ContainsKey(biome))
 		{
 			Console.WriteLine($"Invalid biome: {biome}");
 			return new List<Chest>[0];
 		}
+
 		string color = BiomeData.nameToColor[biome];
 		List<MapArea> area = BiomeData.colorToArea[color];
 		Image<Rgb24> wangMap = BiomeData.colorToWang[color];
@@ -230,7 +272,8 @@ public class MapGenerator
 				BiomeData.biomeIndices[biome],
 				x1,
 				y1,
-				options
+				options,
+				seeds
 			);
 			Parallel.For(0, options.batch, j =>
 			{

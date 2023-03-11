@@ -4,6 +4,7 @@ namespace GCFinder;
 
 public class NoitaRandom
 {
+	public int randomCTR = 0;
 	public NoitaRandom(uint worldSeed)
 	{
 		SetWorldSeed(worldSeed);
@@ -118,6 +119,7 @@ public class NoitaRandom
 
 	public void SetRandomFromWorldSeed()
 	{
+		randomCTR = 0;
 		Seed = world_seed;
 		if (2147483647.0 <= Seed)
 		{
@@ -127,6 +129,7 @@ public class NoitaRandom
 
 	public void SetRandomSeed(double x, double y)
 	{
+		randomCTR = 0;
 		uint ws = world_seed;
 		uint a = ws ^ 0x93262e6f;
 		uint b = a & 0xfff;
@@ -187,6 +190,7 @@ public class NoitaRandom
 
 	public double Next()
 	{
+		randomCTR++;
 		int v4 = (int)Seed * 0x41a7 + ((int)Seed / 0x1f31d) * -0x7fffffff;
 		if (v4 < 0)
 		{
