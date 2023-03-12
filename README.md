@@ -7,10 +7,10 @@ Simply download and extract the latest release and open a command prompt in the 
 For advanced users, you can also compile this program from scratch if you want to tinker with things. Visual Studio is recommended for Windows users, but on Linux you can use `dotnet build` for the .NET portion and `nvcc -o WangTilerCUDA.dll -Xcompiler -fPIC --shared wang.cu` for the CUDA portion. You'll need the .NET 6.0 SDK and the CUDA toolkit.
 
 ## Usage
-This program won't do very much if you just run the EXE. All options are available in the form of command-line arguments. Run GCFinder --help in CMD for a short summary of each one. The option you'll use most is `-l`, as that is the loot filter for chests. A list of valid items can be found in matchlist.txt, and advanced syntax is documented in the option documentation below. `-c` is helpful for continuing long searches, as it copies every argument from the last search performed but continues from the last seed searched.
+This program won't do very much if you just run the EXE. All options are available in the form of command-line arguments. Run `GCFinder --help` in a command promt for a short summary of each one. The option you'll use most is `-l`, as that is the loot filter for chests. A list of valid items can be found in matchlist.txt, and advanced syntax is documented in the option documentation below. `-c` is helpful for continuing long searches, as it copies every argument from the last search performed but continues from the last seed searched.
 
 ## FAQ
-Q: I got an error related to CUDA memory allocation!
+Q: I got an error related to CUDA memory allocation or invalid addresses!
 
 A: You don't have enough VRAM for the requested query. The easiest way to fix this is by decreasing batch size with -z. Other options that increase VRAM usage are max items per chest and chests per biome, try and keep these as low as you can without getting overflow warnings. More parallel worlds also use more VRAM.
 
