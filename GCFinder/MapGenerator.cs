@@ -181,23 +181,28 @@ public class MapGenerator
 
 		uint[] seeds = new uint[options.batch];
 
+		uint nextSeed = o.currentSeed;
+
 		if (options.upwarp_precheck)
 		{
 			DateTime precheckStartTime = DateTime.Now;
 			uint currentSeed = options.currentSeed;
 			int idx = 0;
-			int threadCount = Environment.ProcessorCount;
-			int[] offset = new int[threadCount];
-			Parallel.For(0, threadCount - 1, i =>
+			uint threadCount = (uint)Environment.ProcessorCount;
+			uint[] offset = new uint[threadCount];
+			Parallel.For(0, threadCount, i =>
 			{
-				while (!(idx >= o.batch || offset[i] + currentSeed > int.MaxValue))
+				while (!(idx >= options.batch || offset[i] + currentSeed > int.MaxValue))
 				{
 					if (ChestPosPrechecker.PrecheckSeed((uint)(currentSeed + i + offset[i]), options))
 						lock (seeds)
+							if(idx < options.batch)
 							seeds[idx++] = (uint)(currentSeed + i + offset[i]);
 					offset[i] += threadCount;
 				}
 			});
+			nextSeed = currentSeed + offset.Min();
+			if (options.loggingLevel >= 3) Console.WriteLine($"Prechecked {offset.Min()} seeds");
 			int lineCount = 20;
 			if (options.loggingLevel >= 4)
 			{
@@ -212,7 +217,7 @@ public class MapGenerator
 			}
 			DateTime precheckEndTime = DateTime.Now;
 			TimeSpan precheckFullExec = precheckEndTime - precheckStartTime;
-			if (options.loggingLevel >= 2) Console.WriteLine($"Precheck {options.batch} seeds: {precheckFullExec.TotalSeconds} sec");
+			if (options.loggingLevel >= 2) Console.WriteLine($"Prechecked {options.batch} from {offset.Min()} seeds: {precheckFullExec.TotalSeconds} sec");
 		}
 		else
 		{
@@ -233,7 +238,7 @@ public class MapGenerator
 
 		List<Chest> filteredChests = Wang.FilterChestList(allChests, o, biomes);
 		SortAndWriteResults(filteredChests);
-		return seeds[seeds.Length - 1] + 1;
+		return nextSeed;
 	}
 
 	public List<Chest>[] ProvideBlock(string biome, uint[] seeds)

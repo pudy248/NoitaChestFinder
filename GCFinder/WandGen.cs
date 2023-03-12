@@ -300,7 +300,7 @@ public static class WandGen
 			if(random.Random(0, 100) < 50)
 			{
 				int new_multicast = (int)gun.capacity;
-				for(int i = 1; i < 6; i++)
+				for(int i = 1; i <= 6; i++)
 				{
 					int temp = random.Random(gun.multicast, (int)gun.capacity);
 					if(temp < new_multicast)

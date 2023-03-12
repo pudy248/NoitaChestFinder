@@ -263,7 +263,7 @@ public class PotionLists
 				ret = random_from_array(rnd, materials_sands);
 		}
 		else ret = "ERR";
-		Console.WriteLine($"PotionContents {seed} ({x}, {y}): {potionType} => {ret}");
+		//Console.WriteLine($"PotionContents {seed} ({x}, {y}): {potionType} => {ret}");
 		return ret;
 	}
 

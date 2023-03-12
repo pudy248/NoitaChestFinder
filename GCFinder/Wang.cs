@@ -205,7 +205,6 @@ public static class Wang
 		{
 			bool passed = WandGen.WandChecksPassed(s, wandChecks);
 			if(passed) return 2;
-			else return 0;
 		}
 
 		bool found = false;
@@ -267,7 +266,15 @@ public static class Wang
 				tier = 10;
 			else tier = int.Parse(s.ToCharArray()[index + 1].ToString());
 
-			WandGen.Wand w = WandGen.GetWandWithLevel(retChest.seed, retChest.x, retChest.y, tier, nonshuffle, better);
+			int x = retChest.x;
+			int y = retChest.y;
+			if(y % 10 == 7)
+			{
+				x += 510;
+				y += 683;
+			}
+
+			WandGen.Wand w = WandGen.GetWandWithLevel(retChest.seed, x, y, tier, nonshuffle, better);
 			string[] strs = WandGen.ExpandWand(w);
 			foreach(string str in strs)
 				ExpandAndAdd(retChest, str.Trim(), o);
