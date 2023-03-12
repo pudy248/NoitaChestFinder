@@ -170,7 +170,16 @@ public static class Wang
 			case 47:
 				return "broken_wand";
 
-			case 64:
+			case 48:
+				return "chest_mimic";
+			case 49:
+				return "chest_mimic_sign";
+			case 50:
+				return "chest_mimic_sign_fake";
+			case 51:
+				return "chest_leggy";
+
+				case 64:
 				return "wand_T10NS";
 			case 65:
 				return "wand_T1B";
