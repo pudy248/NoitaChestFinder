@@ -1,5 +1,5 @@
 # pudy248's Chest Loot Searcher
-##OUT OF DATE! Use the rewrite <a href="https://github.com/pudy248/NoitaSeedSearcherCUDA/">here</a>
+## OUT OF DATE! Use the rewrite <a href="https://github.com/pudy248/NoitaSeedSearcherCUDA/">here</a>
 
 DISCLAIMER: There are a few bugs in the Wang tiler worldgen, which makes this program only correct 50-90% of the time, depending on the biome. If a seed doesn't have an item at the reported position, try another seed. Sometimes it can take a few attempts.
 
